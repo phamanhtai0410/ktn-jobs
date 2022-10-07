@@ -88,7 +88,7 @@ deploy_stag:
         sed -i -e "s#\[CONTAINER_REPO\]#$CONTAINER_REPO_ASIA_STAG#g" skaffold.yaml
         sed -i -e "s#\[CI_COMMIT_REF_NAME\]#$CI_COMMIT_REF_NAME#g" skaffold.yaml
       fi
-    - git clone https://read-token:$GITLAB_TOKEN@gitlab.rinznetwork.com/rinz-io-devops/helm-value/$IMAGE_NAME.git
+    - git clone https://read-token:$GITLAB_TOKEN@gitlab.rinznetwork.com/rinz-io-devops/helm-value/katana/$IMAGE_NAME.git
     - mv $IMAGE_NAME/${APP_NAME_JOBS}-stag.yaml .
     - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
     - curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/$SKAFFOLD_VERSION/skaffold-linux-amd64 && chmod +x skaffold &&  mv skaffold /usr/local/bin
