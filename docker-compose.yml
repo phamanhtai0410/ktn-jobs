@@ -1,0 +1,30 @@
+version: "3"
+
+services:
+  # worker:
+  #   image: sync-jobs
+  #   build: .
+  #   restart: always
+  #   volumes:
+  #     - ./:/webapps
+  #   networks:
+  #     - base-network
+  #   command: python sync/collection.py db=sh col=form key_sync=obj  tll=-1
+  sh-jobs:
+    image: sync-jobs
+    build: .
+    volumes:
+      - ./:/webapps
+      # - /var/log/apps/:/var/log/apps/
+    networks:
+      - same-network
+    environment:
+      - PYTHONUNBUFFERED=true
+    env_file:
+      - .env
+    # command: python manage.py run
+    command: supervisord -n -c /etc/supervisor.d/worker.conf
+
+networks:
+  same-network:
+    external: true
