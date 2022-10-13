@@ -108,11 +108,11 @@ class RedisState(EventScannerState):
     Simple load/store massive JSON on start up.
     """
 
-    def __init__(self, address, handle_log):
+    def __init__(self, address, handle_log, handle_func=''):
         self.state = None
         self.wk_handle = handle_log
         # get and set for each scan event
-        self.key_state = f'ktn_cron/scanner:{handle_log}:{address}'
+        self.key_state = f'ktn_cron/scanner:{handle_func}:{address}'
         self.last_save = 0
         self.address = address
         self.init_block = 0
@@ -135,11 +135,11 @@ class RedisState(EventScannerState):
             if _state:
                 self.state = json.loads(_state)
             else:
-                self.reset()
+                self.reset(self.init_block)
             # print(f"Restored the state, previously {self.state['last_scanned_block']} blocks have been scanned")
         except (IOError, json.decoder.JSONDecodeError):
             print("State starting from scratch")
-            self.reset()
+            self.reset(self.init_block)
 
     def save(self):
         """Save everything we have scanned so far in a file."""
@@ -233,8 +233,8 @@ if __name__ == "__main__":
 
     _providers = {}
     # init state scanner
-    state = RedisState(address=contract, handle_log=_func)
-    if scan_all:
+    state = RedisState(address=contract, handle_log=_func, handle_func=str(handle_func))
+    if not scan_all:
         state.reset(INIT_BLOCK_NUMBER)
 
     for provider_uri in providers:
