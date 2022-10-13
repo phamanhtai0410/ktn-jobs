@@ -13,8 +13,12 @@ pymongo==4.1.1
 motor==3.0.0
 redis-py-cluster==2.1.3
 redis==3.5.3
+redlock-py==1.0.8
 schedule==1.1.0
 boto3==1.23.5
 python-slugify==6.1.2
 html2image==2.0.1
 w3storage==0.0.1
+eth-abi
+eth-account
+eth-utils
