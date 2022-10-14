@@ -62,10 +62,20 @@ def on_transfer_nft(_event):
         _tx_hash = py_.get(event, 'transactionHash')
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
+        _contract = py_.get(event, 'address')
         if _from_public_address == web3.constants.ADDRESS_ZERO:
             _event_name = Constants.EVENT_NAME_TOKEN_CREATED
 
+        nft_history = NftsHistoryModel.find_one({
+            'token_id': _token_id,
+            'address': _contract
+        })
+
+        if nft_history:
+            return f'DONE - log existed: {_event}'
+
         NftsHistoryModel.insert_one({
+            'address': _contract,
             'from_address': _from_public_address,
             'to_address': _to_public_address,
             'token_id': _token_id,
