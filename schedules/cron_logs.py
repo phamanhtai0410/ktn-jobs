@@ -113,6 +113,7 @@ class RedisState(EventScannerState):
         self.wk_handle = handle_log
         # get and set for each scan event
         self.key_state = f'ktn_cron/scanner:{handle_func}:{address}'
+        print('key_state: ', self.key_state)
         self.last_save = 0
         self.address = address
         self.init_block = init_block
@@ -234,7 +235,7 @@ if __name__ == "__main__":
     _providers = {}
     # init state scanner
     state = RedisState(address=contract, handle_log=_func, init_block=INIT_BLOCK_NUMBER, handle_func=str(handle_func))
-    if not scan_all:
+    if scan_all:
         state.reset(INIT_BLOCK_NUMBER)
 
     for provider_uri in providers:
