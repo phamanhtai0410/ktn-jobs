@@ -18,7 +18,7 @@ variables:
   AWS_REGION: ap-southeast-1
   GITLAB_TOKEN: $GITLAB_RUNNER_TOKEN
   DOCKER_DRIVER: overlay
-  DOCKER_HOST: tcp://localhost:2375
+ # DOCKER_HOST: tcp://localhost:2375
   DOCKER_TLS_CERTDIR: ""
   GIT_SUBMODULE_STRATEGY: recursive
 
@@ -46,7 +46,7 @@ stages:
 build_stag:
   image: docker:19.03.1
   tags:
-  - esol-stag
+  - esol-stag-test
   stage: build
   services:
   - docker:19.03.1-dind
@@ -59,7 +59,7 @@ build_stag:
     - git submodule sync --recursive
     - git submodule update --init --remote --recursive
   script:
-    - aws ecr get-login-password --region $AWS_REGION | docker login --username AWS --password-stdin $CONTAINER_REPO_ASIA_STAG
+    - docker login -u AWS -p $(aws ecr get-login-password --region $AWS_REGION) $CONTAINER_REPO_ASIA_STAG
     - |
       if [ "$CI_COMMIT_REF_NAME" == "stag" ]; then
         sed -i -e "s#\[NAMESPACE\]#$NAMESPACE_STAG#g" skaffold.yaml
