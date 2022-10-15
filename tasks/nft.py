@@ -24,7 +24,10 @@ def on_token_created(_event):
         _contract = py_.get(event, 'address')
         _token_detail = py_.get(event, 'args.details')
         _rarity = _token_detail[0]
-        _token_uri = _token_detail[1]
+        _nft_type = _token_detail[1]
+        _token_uri = _token_detail[2]
+        _is_used = _token_detail[3]
+
         
         _nft = NftsModel.find_one({
             'token_id': _token_id
@@ -38,6 +41,8 @@ def on_token_created(_event):
             'address': _to_public_address,
             'contract': _contract,
             'rarity': _rarity,
+            'nft_type': _nft_type,
+            '_is_used': _is_used,
             'token_uri': _token_uri,
             'created_by': 'nft_worker',
             'created_time': dt_utcnow()
