@@ -5,6 +5,8 @@ variables:
   APP_NAME_TRANSFER_NFT: ktn-jobs-transfer-nft
   APP_NAME_MINT_NFT: ktn-jobs-mint-nft
   APP_NAME_NFT_QUEUE: ktn-jobs-nft-queue
+  APP_NAME_SCHEDULES: ktn-jobs-schedules
+  APP_NAME_WORKER: ktn-jobs-worker
 
   CONTAINER_REPO_ASIA_STAG: 968557029040.dkr.ecr.ap-southeast-1.amazonaws.com/stag/ktn-jobs
   NAMESPACE_STAG: ktn-jobs-stag
@@ -169,6 +171,56 @@ deploy_APP_NAME_NFT_QUEUE_stag:
     - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
     - curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/$SKAFFOLD_VERSION/skaffold-linux-amd64 && chmod +x skaffold &&  mv skaffold /usr/local/bin
     - /usr/local/bin/skaffold deploy -p profile-${APP_NAME_NFT_QUEUE}-stag   -a build_sync.json
+
+  only:
+    refs:
+      - stag
+
+deploy_APP_NAME_SCHEDULES_stag:
+  stage: deploy
+  image:  alpine/helm:3.2.1
+  tags:
+  - esol-stag
+  script:
+    - *predeploy
+    - *kubectl_config
+    - |
+      if [ "$CI_COMMIT_REF_NAME" == "stag" ]; then
+        sed -i -e "s#\[NAMESPACE\]#$NAMESPACE_STAG#g" skaffold.yaml
+        sed -i -e "s#\[APP_NAME\]#$APP_NAME_SCHEDULES#g" skaffold.yaml
+        sed -i -e "s#\[CONTAINER_REPO\]#$CONTAINER_REPO_ASIA_STAG#g" skaffold.yaml
+        sed -i -e "s#\[CI_COMMIT_REF_NAME\]#$CI_COMMIT_REF_NAME#g" skaffold.yaml
+      fi
+    - git clone https://read-token:$GITLAB_TOKEN@gitlab.rinznetwork.com/rinz-io-devops/helm-value/katana/$IMAGE_NAME.git
+    - mv $IMAGE_NAME/${APP_NAME_SCHEDULES}-stag.yaml .
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
+    - curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/$SKAFFOLD_VERSION/skaffold-linux-amd64 && chmod +x skaffold &&  mv skaffold /usr/local/bin
+    - /usr/local/bin/skaffold deploy -p profile-${APP_NAME_SCHEDULES}-stag   -a build_sync.json
+
+  only:
+    refs:
+      - stag
+
+deploy_APP_NAME_WORKER_stag:
+  stage: deploy
+  image:  alpine/helm:3.2.1
+  tags:
+  - esol-stag
+  script:
+    - *predeploy
+    - *kubectl_config
+    - |
+      if [ "$CI_COMMIT_REF_NAME" == "stag" ]; then
+        sed -i -e "s#\[NAMESPACE\]#$NAMESPACE_STAG#g" skaffold.yaml
+        sed -i -e "s#\[APP_NAME\]#$APP_NAME_WORKER#g" skaffold.yaml
+        sed -i -e "s#\[CONTAINER_REPO\]#$CONTAINER_REPO_ASIA_STAG#g" skaffold.yaml
+        sed -i -e "s#\[CI_COMMIT_REF_NAME\]#$CI_COMMIT_REF_NAME#g" skaffold.yaml
+      fi
+    - git clone https://read-token:$GITLAB_TOKEN@gitlab.rinznetwork.com/rinz-io-devops/helm-value/katana/$IMAGE_NAME.git
+    - mv $IMAGE_NAME/${APP_NAME_WORKER}-stag.yaml .
+    - curl -LO https://storage.googleapis.com/kubernetes-release/release/$KUBECTL_VERSION/bin/linux/amd64/kubectl && chmod +x ./kubectl && mv ./kubectl /usr/local/bin/kubectl
+    - curl -Lo skaffold https://storage.googleapis.com/skaffold/releases/$SKAFFOLD_VERSION/skaffold-linux-amd64 && chmod +x skaffold &&  mv skaffold /usr/local/bin
+    - /usr/local/bin/skaffold deploy -p profile-${APP_NAME_WORKER}-stag   -a build_sync.json
 
   only:
     refs:
