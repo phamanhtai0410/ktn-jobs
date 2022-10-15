@@ -42,7 +42,7 @@ def on_token_created(_event):
             'contract': _contract,
             'rarity': _rarity,
             'nft_type': _nft_type,
-            '_is_used': _is_used,
+            'is_used': _is_used,
             'token_uri': _token_uri,
             'created_by': 'nft_worker',
             'created_time': dt_utcnow()
