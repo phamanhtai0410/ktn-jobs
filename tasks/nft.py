@@ -22,7 +22,6 @@ def on_token_created(_event):
     try:
         event = json.loads(_event)
         _to_public_address = py_.get(event, 'args.to', '').lower()
-        _from_public_address = py_.get(event, 'args.from', '').lower()
         _tx_hash = py_.get(event, 'transactionHash').lower()
         _token_id = py_.get(event, 'args.tokenId')
         _contract = py_.get(event, 'address')
@@ -74,7 +73,7 @@ def on_token_created(_event):
 
         NftsHistoryModel.insert_one({
             'contract': _contract,
-            'from_address': _from_public_address,
+            'from_address': str(web3.constants.ADDRESS_ZERO),
             'to_address': _to_public_address,
             'token_id': _token_id,
             'event': _event_name,
