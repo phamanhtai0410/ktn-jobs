@@ -34,3 +34,4 @@ class Config():
     RPC_URIS = json.loads(os.getenv('RPC_URIS', default='[]'))
     
     KATANA_NFT_CONTRACT = os.getenv('KATANA_NFT_CONTRACT')
+    STAKING_CONTRACT = os.getenv('STAKING_CONTRACT')
