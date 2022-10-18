@@ -24,6 +24,7 @@ class Config():
     CELERY_ROUTES = {
         'worker.on_transfer_nft': {'queue': 'ktn-nft-queue'},
         'worker.on_token_created': {'queue': 'ktn-nft-queue'},
+        'worker.on_stake': {'queue': 'ktn-staking-queue'},
         'worker.on_save_price': {'queue': 'ktn-price-queue'},
         
     }

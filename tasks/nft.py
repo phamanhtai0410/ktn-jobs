@@ -17,6 +17,7 @@ NftsHistoryModel = db['nfts_history']
 NftsStatisticsModel = db['nfts_statistics']
 NftDetailsModel = db['nft_details']
 
+
 @worker.task(name='worker.on_token_created', rate_limit='1000/s')
 def on_token_created(_event):
     try:
@@ -88,25 +89,24 @@ def on_token_created(_event):
         NftsModel.find_one_and_update({
             'token_id': _token_id
         },
-        {
-            '$set': {
-                'token_id': _token_id,
-                'address': _to_public_address,
-                'contract': _contract,
-                'rarity': _rarity,
-                'nft_type': _nft_type,
-                'is_used': _is_used,
-                'token_uri': _token_uri,
-                'created_by': 'nft_worker',
-                'created_time': dt_utcnow()
-        }}, upsert=True)
+            {
+                '$set': {
+                    'token_id': _token_id,
+                    'address': _to_public_address,
+                    'contract': _contract,
+                    'rarity': _rarity,
+                    'nft_type': _nft_type,
+                    'is_used': _is_used,
+                    'token_uri': _token_uri,
+                    'created_by': 'nft_worker',
+                    'created_time': dt_utcnow()
+                }}, upsert=True)
 
         return f"DONE - insert nft info: {_event}"
     except:
         traceback.print_exc()
         sentry_sdk.capture_exception()
         return f"FAIL - on_token_created: {_event}"
-
 
 
 @worker.task(name='worker.on_transfer_nft', rate_limit='1000/s')
@@ -183,7 +183,7 @@ def on_transfer_nft(_event):
                     'address': _to_public_address,
                     'updated_by': 'nft_worker',
                     'updated_time': dt_utcnow()
-            }}, upsert=True)
+                }}, upsert=True)
 
         return f"DONE - update owner nft info: {_event}"
     except:
