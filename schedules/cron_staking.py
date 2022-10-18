@@ -27,7 +27,7 @@ def cron():
         contract_json = json.load(file)
 
     if not contract_json:
-        raise Exception(f'Not found file abi abis/katana_nft.json')
+        raise Exception(f'Not found file abi abis/katana_staking.json')
 
     _staking_contract = _web3.eth.contract(address=_contract_address, abi=contract_json)
 
