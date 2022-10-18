@@ -23,7 +23,7 @@ def cron():
     _contract_address = Config.STAKING_CONTRACT
     _web3 = Web3(Web3.HTTPProvider(_rpc))
 
-    with open('abis/katana_nft.json') as file:
+    with open('abis/katana_staking.json') as file:
         contract_json = json.load(file)
 
     if not contract_json:
