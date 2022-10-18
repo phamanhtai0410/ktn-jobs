@@ -11,10 +11,11 @@ from constants import Constants
 from worker import worker
 from config import Config
 from lib.utils import dt_utcnow
+from extentions import redis_cluster
 
-db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
+# db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
-PricePairsModel = db['price_pairs']
+# PricePairsModel = db['price_pairs']
 
 @worker.task(name='worker.on_save_price', rate_limit='1000/s')
 def on_save_price(price_data, pairs):
@@ -35,6 +36,10 @@ def on_save_price(price_data, pairs):
             _prices = price_response.get("prices")   
 
         return _prices 
+    
+    def get_price_pairs_key(symbol):
+        return f'katana-dapp.price_pairs/{symbol}'
+
     try:
         if not pairs:
             return 'FAIL - pair not found'
@@ -47,20 +52,15 @@ def on_save_price(price_data, pairs):
             return 'FAIL - not found price data'
         _prices = list(filter(lambda x: x['symbol'] in pairs, _prices))
         for price in _prices:
-            price =  {
+            _price =  {
                 "source": _dex_name,
                 "url_source": py_.get(price_data, 'url'),
                 "symbol": py_.get(price, 'symbol'),
                 "price": py_.get(price, 'price'),
-                "updated_time": dt_utcnow(),
-                "updated_by": "price_worker"
+                "updated_time": dt_utcnow().timestamp()
             }
-            PricePairsModel.find_one_and_update({
-                "symbol": py_.get(price, 'symbol'),
-                "url_source": py_.get(price_data, 'url')
-            }, {
-                "$set": price
-            }, upsert=True)
+            _key = get_price_pairs_key(symbol=py_.get(price, 'symbol'))
+            redis_cluster.set(_key, json.dumps(_price))
 
         return "DONE - on_save_price"
     except:
