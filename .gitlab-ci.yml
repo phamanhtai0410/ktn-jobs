@@ -280,7 +280,7 @@ deploy_APP_NAME_SCHEDULE_STAKING_stag:
     refs:
       - stag
 
-deploy_APP_NAME_SCHEDULE_STAKING_stag:
+deploy_APP_NAME_STAKING_QUEUE_stag:
   stage: deploy
   image:  alpine/helm:3.2.1
   tags:
