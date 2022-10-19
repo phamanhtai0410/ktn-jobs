@@ -19,6 +19,7 @@ boto3==1.23.5
 python-slugify==6.1.2
 html2image==2.0.1
 w3storage==0.0.1
+blinker==1.5
 eth-abi
 eth-account
 eth-utils
