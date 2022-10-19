@@ -73,7 +73,7 @@ def on_token_created(_event):
                 }
             }, upsert=True)
 
-        NftsHistoryModel.insert_one({
+        _insert_result = NftsHistoryModel.insert_one({
             'contract': _contract,
             'from_address': str(web3.constants.ADDRESS_ZERO),
             'to_address': _to_public_address,
@@ -85,7 +85,6 @@ def on_token_created(_event):
             'created_time': dt_utcnow(),
             'created_by': 'nft_worker'
         })
-
         # NOTE: will insert metadata of nft with mint event
         NftsModel.find_one_and_update({
             'token_id': _token_id
@@ -104,6 +103,7 @@ def on_token_created(_event):
                 }}, upsert=True)
 
         send_referral_reward.delay(
+            origin_id=str(py_.get(_insert_result, 'inserted_id')),
             address=_to_public_address,
             nft_data={
                 'tx_hash': _tx_hash,

@@ -19,13 +19,12 @@ NftDetailModel = db['nft_details']
 UserModel = db['user']
 
 @worker.task(name='worker.send_referral_reward', rate_limit='1000/s')
-def send_referral_reward(address, nft_data, reward_type = 'TokenCreated'):
+def send_referral_reward(origin_id, address, nft_data, reward_type = 'TokenCreated'):
     def calculate_referral_reward(nft_type, rarity):
         _referral_reward_config = ReferralRewardConfigModel.find_one({
             'nft_type': nft_type,
             'rarity': rarity
         })
-        print('_referral_reward_config: ', _referral_reward_config)
         if not _referral_reward_config:
             return 0
 
@@ -33,7 +32,6 @@ def send_referral_reward(address, nft_data, reward_type = 'TokenCreated'):
             'rarity': rarity,
             'type': nft_type
         })
-        print('_nft_detail: ', _nft_detail)
 
         if not _nft_detail:
             return 0
@@ -47,12 +45,13 @@ def send_referral_reward(address, nft_data, reward_type = 'TokenCreated'):
         _rarity = py_.get(nft_data, 'rarity')
         _nft_type = py_.get(nft_data, 'nft_type')
         _tx_hash = py_.get(nft_data, 'tx_hash')
-        if not _token_id or not _rarity or not _nft_type:
+        if not _token_id or not _rarity or not _nft_type or not _tx_hash:
             sentry_sdk.capture_message(f'FAIL - not found info of referral reward of {address} for {nft_data}')
             return f'FAIL - not found info of referral reward of {address} for {nft_data}'
 
         _referral_reward_log = ReferralRewardLogModel.find_one({
-            'tx_hash': _tx_hash
+            'nft_data.tx_hash': _tx_hash,
+            'nft_data.token_id': _token_id
         })
 
         if _referral_reward_log:
@@ -66,12 +65,13 @@ def send_referral_reward(address, nft_data, reward_type = 'TokenCreated'):
             return f'DONE - send_referral_reward not found referral data - {address}'
 
         _point = calculate_referral_reward(nft_type=_nft_type, rarity=_rarity)
-        print('_point: ', _point)
         
         ReferralRewardLogModel.insert_one({
-            'tx_hash': _tx_hash,
+            'origin_id': origin_id,
+            'token_id': _token_id,
             'nft_data': nft_data,
-            'address': _address_linked,
+            'address': address,
+            'address_linked': _address_linked,
             'point': _point,
             'reward_type': reward_type,
             'created_time': dt_utcnow(),
