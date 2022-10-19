@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import json
 import web3
 from constants import Constants
+from tasks.referral import send_referral_reward
 
 from worker import worker
 from config import Config
@@ -101,6 +102,16 @@ def on_token_created(_event):
                     'created_by': 'nft_worker',
                     'created_time': dt_utcnow()
                 }}, upsert=True)
+
+        send_referral_reward.delay(
+            address=_to_public_address,
+            nft_data={
+                'tx_hash': _tx_hash,
+                'token_id': _token_id,
+                'nft_type': _nft_type,
+                'rarity': _rarity
+            },
+            reward_type='TokenCreated')
 
         return f"DONE - insert nft info: {_event}"
     except:
