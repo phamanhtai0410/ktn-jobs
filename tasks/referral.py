@@ -83,7 +83,7 @@ def send_referral_reward(address, nft_data, reward_type = 'TokenCreated'):
                 'address': _address_linked
             }, {
                 '$inc': {
-                    'total_point': _point
+                    'total_points': _point
                 }
             })
 
