@@ -68,7 +68,6 @@ def send_referral_reward(origin_id, address, nft_data, reward_type = 'TokenCreat
         
         ReferralRewardLogModel.insert_one({
             'origin_id': origin_id,
-            'token_id': _token_id,
             'nft_data': nft_data,
             'address': address,
             'address_linked': _address_linked,
