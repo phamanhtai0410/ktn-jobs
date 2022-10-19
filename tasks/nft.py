@@ -26,7 +26,7 @@ def on_token_created(_event):
         _to_public_address = py_.get(event, 'args.to', '').lower()
         _tx_hash = py_.get(event, 'transactionHash').lower()
         _token_id = py_.get(event, 'args.tokenId')
-        _contract = py_.get(event, 'address')
+        _contract = py_.get(event, 'address').lower()
         _token_detail = py_.get(event, 'args.details')
         _event_name = py_.get(event, 'event')
         _block_number = py_.get(event, 'blockNumber')
@@ -131,7 +131,7 @@ def on_transfer_nft(_event):
         _tx_hash = py_.get(event, 'transactionHash').lower()
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
-        _contract = py_.get(event, 'address')
+        _contract = py_.get(event, 'address').lower()
 
         # NOTE: if not mint event will not execute anything
         if _from_public_address == web3.constants.ADDRESS_ZERO:
