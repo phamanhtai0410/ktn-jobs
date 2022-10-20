@@ -1,10 +1,16 @@
 import json
 import sys
 import time
+import traceback
 
+import requests
+import sentry_sdk
 from pydash import get
-from pymongo import MongoClient
+from pymongo import MongoClient, ReturnDocument
 from web3 import Web3
+
+from enums.event import LeaderBoardEvents
+
 sys.path.append(".")
 from config import Config
 from lib import dt_utcnow
@@ -15,6 +21,23 @@ SLEEP_TIME = 10  # time get data
 db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
 LeaderBoardModel = db['leader_board']
+if Config.SENTRY_DSN:
+    sentry_sdk.init(Config.SENTRY_DSN)
+
+
+def add_point(address, amount, ref_id):
+    try:
+        res = requests.post(f'{Config.IAPI_WALLET}/point', json={
+            "amount": amount,
+            "ref_id": ref_id,
+            "action": LeaderBoardEvents.STAKE,
+            "address": address.lower()
+        }, timeout=10)
+        if res.status_code != 200:
+            sentry_sdk.capture_message(f"ERROR: send add point {res.text} for user {address} amount {amount}")
+    except:
+        sentry_sdk.capture_exception()
+        traceback.print_exc()
 
 
 def cron():
@@ -32,15 +55,19 @@ def cron():
     _staking_contract = _web3.eth.contract(address=_contract_address, abi=contract_json)
 
     _staking_boards = LeaderBoardModel.find({
-        'event': 'stake'
+        'event': LeaderBoardEvents.STAKE
     })
 
     for _staking_board in _staking_boards:
         _user_address = get(_staking_board, 'address')
         _point = _staking_contract.functions.availableRewards(_user_address).call()
-        LeaderBoardModel.find_one_and_update(
+        if not isinstance(_point, int):
+            _point = int(_point)
+
+        before = LeaderBoardModel.find_one_and_update(
             {
-                'address': _user_address
+                'address': _user_address,
+                'event': LeaderBoardEvents.STAKE
             },
             {
                 '$set': {
@@ -49,14 +76,21 @@ def cron():
                     'updated_time': dt_utcnow()
                 }
             },
-            upsert=False
+            return_document=ReturnDocument.BEFORE
         )
+        _dev_point = _point - get(before, 'point', 0)
+        if _dev_point > 0:
+            add_point(address=_user_address, amount=_dev_point, ref_id=str(get(before, '_id')))
 
     on_update_staking_rank.delay()
     print(f'# done cron update stake ranking')
 
 
 while True:
-    print('-' * 10, 'CRON UPDATE STAKE RANKING', '-' * 10)
-    cron()
+    try:
+        print('-' * 10, 'CRON UPDATE STAKE RANKING', '-' * 10)
+        cron()
+    except:
+        sentry_sdk.capture_exception()
+        traceback.print_exc()
     time.sleep(SLEEP_TIME)

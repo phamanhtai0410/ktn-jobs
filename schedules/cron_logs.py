@@ -36,7 +36,8 @@ from config import Config
 from logger import debug
 
 print(Config.REDIS_CLUSTER)
-
+if Config.SENTRY_DSN:
+    sentry_sdk.init(Config.SENTRY_DSN)
 redis_cluster = RedisCluster(
     startup_nodes=Config.REDIS_CLUSTER,
     decode_responses=True,
