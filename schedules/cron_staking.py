@@ -8,10 +8,10 @@ import sentry_sdk
 from pydash import get
 from pymongo import MongoClient, ReturnDocument
 from web3 import Web3
+sys.path.append(".")
 
 from enums.event import LeaderBoardEvents
 
-sys.path.append(".")
 from config import Config
 from lib import dt_utcnow
 from tasks import on_update_staking_rank
