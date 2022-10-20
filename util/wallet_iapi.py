@@ -1,3 +1,4 @@
+import sentry_sdk
 from util.request import RequestUtil
 from config import Config
 
@@ -5,7 +6,7 @@ class WalletIAPIUtil:
 
     @staticmethod
     def add_point(address, amount, ref_id, action='referral_reward'):
-        _url_request = f'{Config.WALLET_IAPI}/point'
+        _url_request = f'{Config.IAPI_WALLET}/point'
         _json = {
             'address': address.lower(),
             'amount': amount,
@@ -18,6 +19,7 @@ class WalletIAPIUtil:
             json=_json
         )
 
-        print(_response)
+        if not _response:
+            sentry_sdk.capture_message(f"ERROR: send add point for user {address} amount {amount}")
 
         return _response
