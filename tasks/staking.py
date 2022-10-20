@@ -12,6 +12,7 @@ db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
 LeaderBoardModel = db['leader_board']
 StakingLogsModel = db['staking_logs']
+EventModel = db['events']
 
 
 @worker.task(name='worker.on_stake', rate_limit='1000/s')
@@ -49,17 +50,29 @@ def on_stake(_event):
             'created_time': dt_utcnow(),
             'created_by': 'staking_worker'
         })
-
+        try:
+            EventModel.find_one_and_update(filter={
+                'name': "stake"
+            }, update={
+                '$set': {
+                    'updated_time': dt_utcnow(),
+                    'updated_by': 'on_stake'
+                },
+                "$inc": {
+                    'total': 1
+                }
+            }, upsert=True)
+        except:
+            sentry_sdk.capture_exception()
+            traceback.print_exc()
         # NOTE: create staking leader board
         LeaderBoardModel.find_one_and_update(
             {
-                'address': _owner
+                'address': _owner,
+                'event': _event_name.lower()
             },
             {
                 '$set': {
-                    'event': _event_name.lower(),
-                    'point': 0,
-                    'rank': 0,
                     'created_by': 'staking_worker',
                     'created_time': dt_utcnow()
                 }
@@ -85,23 +98,22 @@ def on_update_staking_rank():
                 'point': 1
             }
         ))
-        _max_rank = len(_leader_board_stakings)
 
-        for _item in _leader_board_stakings:
+        for index, _item in enumerate(_leader_board_stakings):
             LeaderBoardModel.find_one_and_update(
                 {
-                    'address': get(_item, 'address')
+                    'address': get(_item, 'address'),
+                    'event': get(_item, 'event')
                 },
                 {
                     '$set': {
-                        'rank': _max_rank,
+                        'rank': index + 1,
                         'updated_by': 'staking_worker',
                         'updated_time': dt_utcnow()
                     }
                 },
                 upsert=False
             )
-            _max_rank = _max_rank - 1
 
     except:
         traceback.print_exc()

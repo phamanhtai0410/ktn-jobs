@@ -37,5 +37,4 @@ class Config():
     
     KATANA_NFT_CONTRACT = os.getenv('KATANA_NFT_CONTRACT')
     STAKING_CONTRACT = os.getenv('STAKING_CONTRACT')
-
-    WALLET_IAPI = os.getenv('WALLET_IAPI')
+    IAPI_WALLET = os.getenv('IAPI_WALLET')

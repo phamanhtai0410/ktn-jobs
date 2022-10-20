@@ -3,14 +3,17 @@ import time
 import sys
 
 import pydash as py_
+import sentry_sdk
 
 sys.path.append(".")
+from config import Config
 
 from lib.utils import dt_utcnow
 from tasks.price_pairs import on_save_price
 
 from util.request import RequestUtil
-
+if Config.SENTRY_DSN:
+    sentry_sdk.init(Config.SENTRY_DSN)
 
 DEX_LIST = [
     {
