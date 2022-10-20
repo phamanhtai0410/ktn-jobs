@@ -5,6 +5,7 @@ from pymongo import MongoClient
 import json
 import web3
 from constants import Constants
+from util.wallet_iapi import WalletIAPIUtil
 
 from worker import worker
 from config import Config
@@ -66,7 +67,7 @@ def send_referral_reward(origin_id, address, nft_data, reward_type = 'TokenCreat
 
         _point = calculate_referral_reward(nft_type=_nft_type, rarity=_rarity)
         
-        ReferralRewardLogModel.insert_one({
+        _referral_reward_log = ReferralRewardLogModel.insert_one({
             'origin_id': origin_id,
             'nft_data': nft_data,
             'address': address,
@@ -78,13 +79,12 @@ def send_referral_reward(origin_id, address, nft_data, reward_type = 'TokenCreat
         })
 
         if _point > 0:
-            UserModel.update_one({
-                'address': _address_linked
-            }, {
-                '$inc': {
-                    'total_points': _point
-                }
-            })
+            WalletIAPIUtil.add_point(
+                address=_address_linked,
+                amount=_point,
+                ref_id=str(_referral_reward_log.inserted_id),
+                action='referral_reward'
+            )
 
         return f"DONE - send_referral_reward to {_address_linked} for {nft_data}"
     except:
