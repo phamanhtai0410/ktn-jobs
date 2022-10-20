@@ -53,7 +53,8 @@ def on_stake(_event):
         # NOTE: create staking leader board
         LeaderBoardModel.find_one_and_update(
             {
-                'address': _owner
+                'address': _owner,
+                'event': _event_name.lower()
             },
             {
                 '$set': {
@@ -85,23 +86,22 @@ def on_update_staking_rank():
                 'point': 1
             }
         ))
-        _max_rank = len(_leader_board_stakings)
 
-        for _item in _leader_board_stakings:
+        for index, _item in enumerate(_leader_board_stakings):
             LeaderBoardModel.find_one_and_update(
                 {
-                    'address': get(_item, 'address')
+                    'address': get(_item, 'address'),
+                    'event': get(_item, 'event')
                 },
                 {
                     '$set': {
-                        'rank': _max_rank,
+                        'rank': index + 1,
                         'updated_by': 'staking_worker',
                         'updated_time': dt_utcnow()
                     }
                 },
                 upsert=False
             )
-            _max_rank = _max_rank - 1
 
     except:
         traceback.print_exc()
