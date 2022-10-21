@@ -61,8 +61,8 @@ def cron():
 
     for _staking_board in _staking_boards:
         _user_address = get(_staking_board, 'address')
-        _user_address = web3.Web3.toChecksumAddress(_user_address)
-        _point = _staking_contract.functions.availableRewards(_user_address).call()
+        _check_sum_user_address = web3.Web3.toChecksumAddress(_user_address)
+        _point = _staking_contract.functions.availableRewards(_check_sum_user_address).call()
         if not isinstance(_point, int):
             _point = int(_point)
 
