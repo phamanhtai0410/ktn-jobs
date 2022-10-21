@@ -18,6 +18,7 @@ from lib import dt_utcnow
 from tasks import on_update_staking_rank
 
 SLEEP_TIME = 10  # time get data
+POINT_DECIMALS = 10**18
 
 db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
@@ -81,8 +82,9 @@ def cron():
             return_document=ReturnDocument.BEFORE
         )
         _dev_point = _point - get(before, 'point', 0)
+        _dev_point_formatted = round(_dev_point / POINT_DECIMALS, 2)
         if _dev_point > 0:
-            add_point(address=_user_address, amount=_dev_point, ref_id=str(get(before, '_id')))
+            add_point(address=_user_address, amount=_dev_point_formatted, ref_id=str(get(before, '_id')))
 
     on_update_staking_rank.delay()
     print(f'# done cron update stake ranking')
