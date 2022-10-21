@@ -25,6 +25,8 @@ class Config():
         'worker.on_transfer_nft': {'queue': 'ktn-nft-queue'},
         'worker.on_token_created': {'queue': 'ktn-nft-queue'},
         'worker.on_stake': {'queue': 'ktn-staking-queue'},
+        'worker.on_un_stake': {'queue': 'ktn-staking-queue'},
+        'worker.on_update_staking_rank': {'queue': 'ktn-staking-queue'},
         'worker.on_save_price': {'queue': 'ktn-price-queue'},
         'worker.send_referral_reward': {'queue': 'ktn-jobs-queue'},
         

@@ -225,11 +225,9 @@ def on_update_staking_rank():
         _leader_board_stakings = list(LeaderBoardModel.find(
             filter={
                 'event': LeaderBoardEvents.STAKE
-            },
-            sort={
-                'point': 1
             }
-        ))
+        ).sort('point', -1))
+
 
         for index, _item in enumerate(_leader_board_stakings):
             LeaderBoardModel.find_one_and_update(
@@ -246,7 +244,7 @@ def on_update_staking_rank():
                 },
                 upsert=False
             )
-
+        return f"DONE - on_update_staking_rank"
     except:
         traceback.print_exc()
         sentry_sdk.capture_exception()
