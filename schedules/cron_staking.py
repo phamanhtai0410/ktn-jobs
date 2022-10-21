@@ -67,6 +67,8 @@ def cron():
         if not isinstance(_point, int):
             _point = int(_point)
 
+        _point_formatted = round(_point / POINT_DECIMALS, 2)
+
         before = LeaderBoardModel.find_one_and_update(
             {
                 'address': _user_address,
@@ -74,17 +76,17 @@ def cron():
             },
             {
                 '$set': {
-                    'point': _point,
+                    'point': _point_formatted,
                     'updated_by': 'staking_cron',
                     'updated_time': dt_utcnow()
                 }
             },
             return_document=ReturnDocument.BEFORE
         )
-        _dev_point = _point - get(before, 'point', 0)
-        _dev_point_formatted = round(_dev_point / POINT_DECIMALS, 2)
+        _dev_point = _point_formatted - get(before, 'point', 0)
+
         if _dev_point > 0:
-            add_point(address=_user_address, amount=_dev_point_formatted, ref_id=str(get(before, '_id')))
+            add_point(address=_user_address, amount=_dev_point, ref_id=str(get(before, '_id')))
 
     on_update_staking_rank.delay()
     print(f'# done cron update stake ranking')
