@@ -18,7 +18,7 @@ from lib import dt_utcnow
 from tasks import on_update_staking_rank
 
 SLEEP_TIME = 10  # time get data
-POINT_DECIMALS = 10**18
+POINT_DECIMALS = 10**6
 
 db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
