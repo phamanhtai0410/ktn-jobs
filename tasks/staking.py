@@ -154,7 +154,7 @@ def on_un_stake_all(_event):
         _tx_hash = get(event, 'transactionHash').lower()
         _contract = get(event, 'address').lower()
         _owner = get(event, 'args.to').lower()
-        _quantity = get(event, 'args.quantity').lower()
+        _quantity = get(event, 'args.total')
         _nft_collection = get(event, 'args.nftCollection').lower()
         _event_name = get(event, 'event')
         _block_number = get(event, 'blockNumber')
@@ -224,7 +224,8 @@ def on_update_staking_rank():
     try:
         _leader_board_stakings = list(LeaderBoardModel.find(
             filter={
-                'event': LeaderBoardEvents.STAKE
+                'event': LeaderBoardEvents.STAKE,
+                'is_stake': True
             }
         ).sort('point', -1))
 
