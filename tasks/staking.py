@@ -187,7 +187,7 @@ def on_un_stake_all(_event):
             }, update={
                 '$set': {
                     'updated_time': dt_utcnow(),
-                    'updated_by': 'on_un_stake'
+                    'updated_by': 'on_un_stake_all'
                 },
                 "$inc": {
                     'total': -int(_quantity)
