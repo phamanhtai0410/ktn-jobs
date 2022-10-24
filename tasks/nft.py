@@ -187,8 +187,7 @@ def on_transfer_nft(_event):
             }, upsert=True)
         elif _event_name == Constants.EVENT_NAME_TRANSFER:
             NftsModel.find_one_and_update({
-                'token_id': _token_id,
-                'address': _from_public_address
+                'token_id': _token_id
             }, {
                 '$set': {
                     'address': _to_public_address,
