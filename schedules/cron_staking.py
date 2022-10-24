@@ -33,7 +33,8 @@ def add_point(address, amount, ref_id):
             "amount": amount,
             "ref_id": ref_id,
             "action": LeaderBoardEvents.STAKE,
-            "address": address.lower()
+            "address": address.lower(),
+            'event': 'stake'
         }, timeout=10)
         if res.status_code != 200:
             sentry_sdk.capture_message(f"ERROR: send add point {res.text} for user {address} amount {amount}")

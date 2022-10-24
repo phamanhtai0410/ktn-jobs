@@ -11,7 +11,8 @@ class WalletIAPIUtil:
             'address': address.lower(),
             'amount': amount,
             'ref_id': str(ref_id),
-            'action': action
+            'action': action,
+            'event': 'referral'
         }
 
         _response = RequestUtil.post(
