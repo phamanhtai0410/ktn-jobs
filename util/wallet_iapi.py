@@ -12,7 +12,7 @@ class WalletIAPIUtil:
             'amount': amount,
             'ref_id': str(ref_id),
             'action': action,
-            'event': 'referral'
+            'event': 'top_referral'
         }
 
         _response = RequestUtil.post(
