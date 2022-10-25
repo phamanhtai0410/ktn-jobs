@@ -170,7 +170,7 @@ def on_un_stake_all(_event):
         if _staking_log:
             return f'DONE - Stake log existed: {_event}'
 
-        _ids.remove(0)
+        _ids = list(filter(lambda x: x != 0, _ids))
 
         # NOTE: Insert staking log
         StakingLogsModel.insert_one({
