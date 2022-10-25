@@ -281,6 +281,7 @@ if __name__ == "__main__":
             result, total_chunks_scanned = provider.scanner.scan(
                 start_block,
                 end_block,
+                start_chunk_size=7,
                 progress_callback=_update_progress)
             print(f'done scan {result}')
         except:
@@ -297,4 +298,4 @@ if __name__ == "__main__":
                 provider = _providers[provider_rpc]
                 sentry_sdk.capture_message(
                     f"switch rpc: from {old_rpc} to {provider_rpc}")
-        sleep(60)
+        sleep(21)
