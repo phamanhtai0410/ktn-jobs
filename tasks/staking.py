@@ -43,6 +43,7 @@ def on_stake(_event):
             'contract': _contract,
             'address': _owner,
             'token_id': _token_id,
+            'ids': [_token_id],
             'nft_collection': _nft_collection,
             'event': _event_name,
             'tx_hash': _tx_hash,
@@ -116,6 +117,7 @@ def on_un_stake(_event):
             'contract': _contract,
             'address': _owner,
             'token_id': _token_id,
+            'ids': [_token_id],
             'nft_collection': _nft_collection,
             'event': _event_name,
             'tx_hash': _tx_hash,
@@ -154,7 +156,7 @@ def on_un_stake_all(_event):
         _tx_hash = get(event, 'transactionHash').lower()
         _contract = get(event, 'address').lower()
         _owner = get(event, 'args.to').lower()
-        _quantity = get(event, 'args.total')
+        _ids = get(event, 'args.ids')
         _nft_collection = get(event, 'args.nftCollection').lower()
         _event_name = get(event, 'event')
         _block_number = get(event, 'blockNumber')
@@ -173,6 +175,7 @@ def on_un_stake_all(_event):
             'contract': _contract,
             'address': _owner,
             'token_id': None,
+            'ids': _ids,
             'nft_collection': _nft_collection,
             'event': _event_name,
             'tx_hash': _tx_hash,
@@ -190,7 +193,7 @@ def on_un_stake_all(_event):
                     'updated_by': 'on_un_stake_all'
                 },
                 "$inc": {
-                    'total': -int(_quantity)
+                    'total': -int(len(_ids))
                 }
             }, upsert=True)
         except:
