@@ -10,11 +10,11 @@ from pydash import get
 from pymongo import MongoClient, ReturnDocument
 from web3 import Web3
 
-from lib.logger import debug
 
 sys.path.append(".")
 
 from enums.event import LeaderBoardEvents
+from lib.logger import debug
 
 from config import Config
 from lib import dt_utcnow
