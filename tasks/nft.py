@@ -190,6 +190,7 @@ def on_transfer_nft(_event):
                 'token_id': _token_id
             }, {
                 '$set': {
+                    'old_address': _from_public_address,
                     'address': _to_public_address,
                     'updated_by': 'nft_worker',
                     'updated_time': dt_utcnow()
