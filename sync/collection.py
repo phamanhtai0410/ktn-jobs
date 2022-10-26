@@ -23,6 +23,7 @@ from config import Config
 from extentions import redis_cluster
 from multiprocessing import Pool
 from util import logger
+from lib.logger import debug
 
 
 def printf(*args):
@@ -66,6 +67,7 @@ def get_key_redis(database, collection, obj, fields):
             _filter_keys.append(field)
         else:
             _key_fields = field.split("#")
+            debug(f'{_key_fields}')
             _filter_keys.append(_key_fields[0])
             _obj[_key_fields[0]] = json.loads(_key_fields[1])
 
@@ -95,7 +97,7 @@ def filter_log(fields, obj):
             _filter_keys.append(_key_fields[0])
             _obj[_key_fields[0]] = json.loads(_key_fields[1])
     for key, val in _obj.items():
-        if obj[key] != val:
+        if get(obj,key) != val:
             return False
     return True
 
