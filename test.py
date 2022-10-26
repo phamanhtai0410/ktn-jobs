@@ -7,4 +7,4 @@
 import json
 
 _filter_keys = []
-print(json.loads("True"))
+print(round(0.001, 2))

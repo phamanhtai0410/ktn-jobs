@@ -9,6 +9,9 @@ import web3
 from pydash import get
 from pymongo import MongoClient, ReturnDocument
 from web3 import Web3
+
+from lib.logger import debug
+
 sys.path.append(".")
 
 from enums.event import LeaderBoardEvents
@@ -85,7 +88,7 @@ def cron():
             return_document=ReturnDocument.BEFORE
         )
         _dev_point = _point_formatted - get(before, 'point', 0)
-
+        debug(f"_dev_point of address {_user_address} {_dev_point} {_point_formatted} {get(before, 'point', 0)}")
         if _dev_point > 0:
             add_point(address=_user_address, amount=_dev_point, ref_id=str(get(before, '_id')))
 
