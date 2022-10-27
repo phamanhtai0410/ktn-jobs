@@ -3,7 +3,9 @@ services:
 
   ktn-jobs:
     image: ktn-jobs
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -14,8 +16,10 @@ services:
     command: supervisord -n -c /etc/supervisor.d/worker.conf
 
   ktn-jobs-transfer-nft:
-    image: ktn-jobs-transfer-nft
-    build: .
+    image: ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -24,8 +28,10 @@ services:
     command: python3 -u schedules/cron_logs.py contract=KATANA_NFT_CONTRACT from_block=23829161  abi_path=abis/katana_nft.json handle_path=tasks handle_func=on_transfer_nft event=Transfer scan_all=0
 
   ktn-jobs-mint-nft:
-    image: ktn-jobs-mint-nft
-    build: .
+    image: ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -34,8 +40,10 @@ services:
     command: python3 -u schedules/cron_logs.py contract=KATANA_NFT_CONTRACT from_block=23829161  abi_path=abis/katana_nft.json handle_path=tasks handle_func=on_token_created event=TokenCreated scan_all=1
   
   ktn-jobs-nft-queue:
-    image: ktn-jobs-nft-queue  
-    build: .
+    image: ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -44,8 +52,10 @@ services:
     command: celery --app worker worker -Q ktn-nft-queue -l INFO -c 4
 
   ktn-jobs-schedules-price:
-    image:  ktn-jobs-schedules-price
-    build: .
+    image:  ktn-jobs
+     build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -55,7 +65,9 @@ services:
 
   ktn-jobs-worker:
     image:  ktn-jobs-worker
-    build: .
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -64,8 +76,10 @@ services:
     command: celery --app worker worker -Q ktn-price-queue -l INFO -c 4  
 
   ktn-jobs-scan-stake-nft:
-    image:  ktn-jobs-scan-stake-nft
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -74,8 +88,10 @@ services:
     command: python3 -u schedules/cron_logs.py contract=STAKING_CONTRACT from_block=23713408 abi_path=abis/katana_staking.json handle_path=tasks handle_func=on_stake event=Stake scan_all=1
 
   ktn-jobs-schedule-staking:
-    image:  ktn-jobs-schedule-staking
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -84,8 +100,10 @@ services:
     command: python3 -u schedules/cron_staking.py
 
   ktn-jobs-schedules-cron-unstakeall:
-    image:  ktn-jobs-schedules-cron-unstakeall
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -94,8 +112,10 @@ services:
     command: python3 schedules/cron_logs.py contract=STAKING_CONTRACT from_block=23713408 abi_path=abis/katana_staking.json handle_path=tasks handle_func=on_un_stake_all event=UnstakeAll scan_all=0
 
   ktn-jobs-schedules-cron-withdraw:
-    image:  ktn-jobs-schedules-cron-withdraw
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -104,8 +124,10 @@ services:
     command: python3 schedules/cron_logs.py contract=STAKING_CONTRACT from_block=23713408 abi_path=abis/katana_staking.json handle_path=tasks handle_func=on_un_stake event=Withdraw scan_all=0
   
   ktn-jobs-staking-queue:
-    image:  ktn-jobs-staking-queue
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
     restart: always
     volumes:
       - ./:/webapps
@@ -114,8 +136,11 @@ services:
     command: celery --app worker worker -Q ktn-staking-queue -l INFO -c 4
   
   ktn-jobs-queue-worker:
-    image:  ktn-jobs-queue-worker
-    build: .
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+
     restart: always
     volumes:
       - ./:/webapps
