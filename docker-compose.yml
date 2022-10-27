@@ -53,7 +53,7 @@ services:
 
   ktn-jobs-schedules-price:
     image:  ktn-jobs
-     build: 
+    build: 
       context: .
       dockerfile: Dockerfile-server
     restart: always
