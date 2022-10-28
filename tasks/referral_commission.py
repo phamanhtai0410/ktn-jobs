@@ -20,6 +20,7 @@ ReferralCommissionModel = db['referral_commission']
 ReferralCommissionLogModel = db['referral_commission_logs']
 SignatureLogsModel = db['signature_logs']
 OrderModel = db['orders']
+LeaderBoardModel = db['leader_board']
 
 
 def save_referral_commission(address, ref_code, tx_hash, commission_value, items, event):
@@ -106,11 +107,24 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
             '$inc': _commission_inc
         }, upsert=True)
 
+        LeaderBoardModel.find_one_and_update({
+            'address': _address_linked,
+            'event': 'top_referral'
+        }, {
+            '$inc': {
+                'point': 1
+            },
+            '$set': {
+                'updated_by': 'worker',
+                'updated_time': dt_utcnow()
+            }
+        }, upsert=True)
+
         WalletIAPIUtil.add_point(
                 address=_address_linked,
                 amount=commission_value,
                 ref_id=str(_referral_commission_log.inserted_id),
-                action='referral_commission'
+                action='top_referral'
             )
 
     return
