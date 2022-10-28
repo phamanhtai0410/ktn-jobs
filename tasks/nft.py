@@ -102,16 +102,16 @@ def on_token_created(_event):
                     'created_time': dt_utcnow()
                 }}, upsert=True)
 
-        send_referral_reward.delay(
-            origin_id=str(py_.get(_insert_result, 'inserted_id')),
-            address=_to_public_address,
-            nft_data={
-                'tx_hash': _tx_hash,
-                'token_id': _token_id,
-                'nft_type': _nft_type,
-                'rarity': _rarity
-            },
-            reward_type='TokenCreated')
+        # send_referral_reward.delay(
+        #     origin_id=str(py_.get(_insert_result, 'inserted_id')),
+        #     address=_to_public_address,
+        #     nft_data={
+        #         'tx_hash': _tx_hash,
+        #         'token_id': _token_id,
+        #         'nft_type': _nft_type,
+        #         'rarity': _rarity
+        #     },
+        #     reward_type='TokenCreated')
 
         return f"DONE - insert nft info: {_event}"
     except:

@@ -78,13 +78,6 @@ def send_referral_reward(origin_id, address, nft_data, reward_type = 'TokenCreat
             'created_by': 'referral_worker'
         })
 
-        if _point > 0:
-            WalletIAPIUtil.add_point(
-                address=_address_linked,
-                amount=_point,
-                ref_id=str(_referral_reward_log.inserted_id),
-                action='referral_reward'
-            )
 
         return f"DONE - send_referral_reward to {_address_linked} for {nft_data}"
     except:

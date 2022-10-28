@@ -88,7 +88,66 @@ class Provider(object):
             max_chunk_scan_size=5000
         )
 
+class EventParser:
+    @staticmethod
+    def parse(event, args_fields = [], dict_fields = {}):
+        # NOTE: get default attr of event for parse web3 data
+        _event_attr = json.loads(Web3.toJSON({
+            'event': get(event, 'event'),
+            'logIndex': get(event, 'logIndex'),
+            'transactionIndex': get(event, 'transactionIndex'),
+            'transactionHash': get(event, 'transactionHash'),
+            'address': get(event, 'address'),
+            'blockHash': get(event, 'blockHash'),
+            'blockNumber': get(event, 'blockNumber')
+        }))
+        
+        # NOTE: get args for parse with special return value
+        _args = dict(get(event, 'args'))
+        
+        for _field in _args:
+            if isinstance(_args[_field], bytes):
+                print('before: ', _args[_field])
+                _args[_field] = _args[_field].decode("utf-8") 
+                print('after: ', _args[_field])
 
+        if not args_fields or not dict_fields:
+            return json.loads(Web3.toJSON({
+                **_event_attr,
+                'args': _args,
+            }))
+        
+        _new_args = {}
+        for args_field in args_fields:
+            _arg_data = get(_args, args_field)
+            if not _arg_data:
+                raise Exception(f'EventParser: do not have data for {args_field}')
+            
+            if isinstance(_arg_data, dict):
+                _new_args[args_field] = _arg_data
+            elif isinstance(_arg_data, list):
+
+                if not args_field in dict_fields:
+                    raise Exception('EventParser: do not have parse field')
+                    
+                _new_args_data = []
+                for item in _arg_data:
+                    _dict = {}
+                    for idx, value in list(enumerate(item)):
+                        _dict[f'{dict_fields[args_field][idx]}'] = value
+                    _new_args_data.append(_dict)
+
+                _new_args[args_field] = _new_args_data
+            else:
+                _new_args[args_field] = _arg_data
+
+        return {
+            **_event_attr,
+            'args': {
+                **_args,
+                **_new_args
+            }
+        }
 #
 #
 # @handle_exception()
@@ -109,7 +168,7 @@ class RedisState(EventScannerState):
     Simple load/store massive JSON on start up.
     """
 
-    def __init__(self, address, handle_log, init_block=0, handle_func=''):
+    def __init__(self, address, handle_log, init_block=0, handle_func='', parse_event=0, args_fields=[], dict_fields={}):
         self.state = None
         self.wk_handle = handle_log
         # get and set for each scan event
@@ -118,6 +177,9 @@ class RedisState(EventScannerState):
         self.last_save = 0
         self.address = address
         self.init_block = init_block
+        self.args_fields = args_fields
+        self.dict_fields = dict_fields
+        self.parse_event = parse_event
         self.restore()
 
     def reset(self, init_block=0):
@@ -178,12 +240,16 @@ class RedisState(EventScannerState):
 
     def process_event(self, block_when: datetime, event: AttributeDict) -> dict:
         try:
-            event = json.loads(Web3.toJSON(event))
+            _wk_event = None
+            if self.parse_event:
+                _wk_event = EventParser.parse(event, args_fields=self.args_fields, dict_fields=self.dict_fields)
+            else:
+                _wk_event = json.loads(Web3.toJSON(event))
 
-            _tx_hash = pydash.get(event, 'transactionHash')
+            _tx_hash = pydash.get(_wk_event, 'transactionHash')
             _tx_hash = _tx_hash.lower()
-            event['block_time'] = block_when.timestamp()
-            event['transactionHash'] = _tx_hash
+            _wk_event['block_time'] = block_when.timestamp()
+            _wk_event['transactionHash'] = _tx_hash
             if _tx_hash:
                 _key = f'msp:msp_redlock\{self.address}:{_tx_hash}'
                 _lock = True #dlm.lock(_key, 300000)
@@ -191,7 +257,7 @@ class RedisState(EventScannerState):
                 if _lock:
                     print(
                         f'\033[92m ✔✔✔ Process .................. {_tx_hash} \033[0m')
-                    self.wk_handle.delay(json.dumps(event))
+                    self.wk_handle.delay(json.dumps(_wk_event))
                 else:
                     print(
                         f'\033[93m ⚠⚠⚠ ______ Lock fail ______ {_tx_hash} \033[0m')
@@ -215,6 +281,23 @@ if __name__ == "__main__":
     handle_path = kw_dict.get('handle_path')
     handle_func = kw_dict.get('handle_func')
 
+    parse_event = int(get(kw_dict, 'parse_event', 0))
+    args_fields = get(kw_dict, 'args_fields', '')
+    dict_fields = get(kw_dict, 'dict_fields', '')
+
+    # args_fields: field1,field2,field3
+    _args_fields = []
+    if args_fields:
+        _args_fields = args_fields.split(',')
+
+    # dict_fields: field1#value1-value2-value3,fields2#value1-value2-value3
+    _dict_fields = {}
+    if dict_fields:
+        dict_fields = dict_fields.split(',')
+        for dict_field in dict_fields:
+            _field = dict_field.split('#')
+            _dict_fields[_field[0]] = _field[1].split('-')
+    
     # flag for scan all from from_block
     scan_all = int(get(kw_dict, 'scan_all', 1))
 
@@ -235,7 +318,8 @@ if __name__ == "__main__":
 
     _providers = {}
     # init state scanner
-    state = RedisState(address=contract, handle_log=_func, init_block=INIT_BLOCK_NUMBER, handle_func=str(handle_func))
+    state = RedisState(address=contract, handle_log=_func, init_block=INIT_BLOCK_NUMBER, handle_func=str(handle_func), \
+        parse_event=parse_event, args_fields=_args_fields, dict_fields=_dict_fields)
     if scan_all:
         state.reset(INIT_BLOCK_NUMBER)
 

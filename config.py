@@ -30,6 +30,8 @@ class Config():
         'worker.on_update_staking_rank': {'queue': 'ktn-staking-queue'},
         'worker.on_save_price': {'queue': 'ktn-price-queue'},
         'worker.send_referral_reward': {'queue': 'ktn-jobs-queue'},
+        'worker.on_mint_order_from_dev': {'queue': 'ktn-referral-commission-queue'},
+        'worker.on_mint_order_from_dapp_creator': {'queue': 'ktn-referral-commission-queue'},
         
     }
 
