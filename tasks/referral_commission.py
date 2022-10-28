@@ -68,6 +68,19 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
                         'address_linked': _address_linked
                     }
                 }, upsert=True)
+
+                LeaderBoardModel.find_one_and_update({
+                    'address': _address_linked,
+                    'event': 'top_referral'
+                }, {
+                    '$inc': {
+                        'point': 1
+                    },
+                    '$set': {
+                        'updated_by': 'worker',
+                        'updated_time': dt_utcnow()
+                    }
+                }, upsert=True)
             else:
                 #NOTE: if user linked to this ref code -> use this address for calculate commission
                 _address_linked = py_.get(_referral_log, 'address_linked')
@@ -105,19 +118,6 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
         }, {
             '$set': _commission_data,
             '$inc': _commission_inc
-        }, upsert=True)
-
-        LeaderBoardModel.find_one_and_update({
-            'address': _address_linked,
-            'event': 'top_referral'
-        }, {
-            '$inc': {
-                'point': 1
-            },
-            '$set': {
-                'updated_by': 'worker',
-                'updated_time': dt_utcnow()
-            }
         }, upsert=True)
 
         WalletIAPIUtil.add_point(
