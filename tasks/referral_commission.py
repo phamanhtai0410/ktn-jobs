@@ -31,49 +31,45 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
         _referral = ReferralModel.find_one({
             'address': address
         })
-        _address_linked = py_.get(_referral, 'address_linked')
-        if _address_linked:
-            return
+        _address_linked = py_.get(_referral, 'address_linked', '')
     else:
         _referral = ReferralModel.find_one({
             'code': ref_code
         })
 
-        # NOTE: if ref not in db -> do not calculate commission
-        if not _referral:
-            return
-
-        _referral_log = ReferralLogModel.find_one({
-            'address': address,
-            'code_linked': ref_code
-        })
-        
-        # NOTE: if user not link to this ref code -> replace ref code of user and use this ref_code's address for calculate commission
-        if not _referral_log:
-            _is_inc_total_user = True
-
-            _address_linked = py_.get(_referral, 'address')
-
-            ReferralLogModel.insert_one({
+        # NOTE: if referral of this code existed
+        if _referral:
+            _referral_log = ReferralLogModel.find_one({
                 'address': address,
-                'code_linked': ref_code,
-                'address_linked': _address_linked,
-                'created_by': 'worker',
-                'created_time': dt_utcnow()
+                'code_linked': ref_code
             })
+            
+            # NOTE: if user not link to this ref code -> replace ref code of user and use this ref_code's address for calculate commission
+            if not _referral_log:
+                _is_inc_total_user = True
 
-            ReferralModel.update_one({
-                'address': address
-            }, {
-                '$set': {
+                _address_linked = py_.get(_referral, 'address')
+
+                ReferralLogModel.insert_one({
                     'address': address,
                     'code_linked': ref_code,
-                    'address_linked': _address_linked
-                }
-            }, upsert=True)
-        else:
-            #NOTE: if user linked to this ref code -> use this address for calculate commission
-            _address_linked = py_.get(_referral_log, 'address_linked')
+                    'address_linked': _address_linked,
+                    'created_by': 'worker',
+                    'created_time': dt_utcnow()
+                })
+
+                ReferralModel.update_one({
+                    'address': address
+                }, {
+                    '$set': {
+                        'address': address,
+                        'code_linked': ref_code,
+                        'address_linked': _address_linked
+                    }
+                }, upsert=True)
+            else:
+                #NOTE: if user linked to this ref code -> use this address for calculate commission
+                _address_linked = py_.get(_referral_log, 'address_linked')
 
     _commission_data = {
         'address': _address_linked,
@@ -89,20 +85,19 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
             'total_user': 1
         }
 
+    _referral_commission_log = ReferralCommissionLogModel.insert_one({
+        'tx_hash': tx_hash,
+        'commission': commission_value,
+        'items': items,
+        'address': address,
+        'address_linked': _address_linked,
+        'referral_code': ref_code,
+        'event': event,
+        'created_by': 'worker',
+        'created_time': dt_utcnow()
+    })
+
     if _address_linked:
-        _referral_commission_log = ReferralCommissionLogModel.insert_one({
-            'tx_hash': tx_hash,
-            'commission': commission_value,
-            'items': items,
-            'address': address,
-            'address_linked': _address_linked,
-            'referral_code': ref_code,
-            'event': event,
-            'created_by': 'worker',
-            'created_time': dt_utcnow()
-        })
-
-
         # NOTE: save commission of linked address
         ReferralCommissionModel.find_one_and_update({
             'address': _address_linked
