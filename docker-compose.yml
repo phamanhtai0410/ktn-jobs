@@ -110,7 +110,28 @@ services:
     networks:
       - base-network
     command: python3 schedules/cron_logs.py contract=STAKING_CONTRACT from_block=23713408 abi_path=abis/katana_staking.json handle_path=tasks handle_func=on_un_stake_all event=UnstakeAll scan_all=0
-
+  ktn-jobs-schedules-cron-mintdev:
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: python3 schedules/cron_logs.py contract=KATANA_NFT_CONTRACT from_block=24092003 abi_path=abis/katana_nft.json handle_path=tasks handle_func=on_mint_order_from_dev event=MintOrderForDev scan_all=1 parse_event=1 args_fields=returnMintingOrder dict_fields=returnMintingOrder#tokenId-rarity-cid-nftType
+  ktn-jobs-schedules-cron-mintdapp:
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: python3 schedules/cron_logs.py contract=KATANA_NFT_CONTRACT from_block=24092003 abi_path=abis/katana_nft.json handle_path=tasks handle_func=on_mint_order_from_dapp_creator event=MintOrderFromDaapCreator scan_all=1 parse_event=1 args_fields=returnMintingOrder dict_fields=returnMintingOrder#tokenId-rarity-cid-nftType
   ktn-jobs-schedules-cron-withdraw:
     image:  ktn-jobs
     build: 
@@ -134,7 +155,17 @@ services:
     networks:
       - base-network
     command: celery --app worker worker -Q ktn-staking-queue -l INFO -c 4
-  
+  ktn-jobs-referral-commission-worker:
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: celery --app worker worker -Q ktn-referral-commission-queue -l INFO -c 4
   ktn-jobs-queue-worker:
     image:  ktn-jobs
     build: 
