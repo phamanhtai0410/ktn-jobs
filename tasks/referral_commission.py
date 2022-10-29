@@ -38,8 +38,8 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
             'code': ref_code
         })
 
-        # NOTE: if referral of this code existed
-        if _referral:
+        # NOTE: if referral of this code existed and not same with this address
+        if _referral and py_.get(_referral, 'address') != address:
             _referral_log = ReferralLogModel.find_one({
                 'address': address,
                 'code_linked': ref_code
