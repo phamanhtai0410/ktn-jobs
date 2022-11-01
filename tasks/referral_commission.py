@@ -49,26 +49,6 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
             if not _referral_log:
                 _is_inc_total_user = True
 
-                _address_linked = py_.get(_referral, 'address')
-
-                ReferralLogModel.insert_one({
-                    'address': address,
-                    'code_linked': ref_code,
-                    'address_linked': _address_linked,
-                    'created_by': 'worker',
-                    'created_time': dt_utcnow()
-                })
-
-                ReferralModel.update_one({
-                    'address': address
-                }, {
-                    '$set': {
-                        'address': address,
-                        'code_linked': ref_code,
-                        'address_linked': _address_linked
-                    }
-                }, upsert=True)
-
                 LeaderBoardModel.find_one_and_update({
                     'address': _address_linked,
                     'event': 'top_referral'
@@ -81,9 +61,26 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, items
                         'updated_time': dt_utcnow()
                     }
                 }, upsert=True)
-            else:
-                #NOTE: if user linked to this ref code -> use this address for calculate commission
-                _address_linked = py_.get(_referral_log, 'address_linked')
+            
+            _address_linked = py_.get(_referral, 'address')
+
+            ReferralLogModel.insert_one({
+                'address': address,
+                'code_linked': ref_code,
+                'address_linked': _address_linked,
+                'created_by': 'worker',
+                'created_time': dt_utcnow()
+            })
+
+            ReferralModel.update_one({
+                'address': address
+            }, {
+                '$set': {
+                    'address': address,
+                    'code_linked': ref_code,
+                    'address_linked': _address_linked
+                }
+            }, upsert=True)
 
     _commission_data = {
         'address': _address_linked,
