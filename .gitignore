@@ -7,3 +7,5 @@ venv
 supervisord.pid
 *.model
 lib
+skaffold.yaml
+.gitlab-ci.yml
