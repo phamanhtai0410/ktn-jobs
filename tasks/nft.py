@@ -32,9 +32,9 @@ def on_token_created(_event):
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
         _rarity = _token_detail[0]
-        _nft_type = _token_detail[1]
-        _token_uri = _token_detail[2]
-        _is_used = _token_detail[3]
+        _token_uri = _token_detail[1]
+        _is_used = _token_detail[2]
+        _extra_data = py_.get(event, 'extra_data', {})
 
         _nft_history = NftsHistoryModel.find_one({
             'token_id': _token_id,
@@ -47,18 +47,18 @@ def on_token_created(_event):
 
         # NOTE: statistic data
         _nft_detail = NftDetailsModel.find_one({
-            'type': _nft_type,
+            'address': _contract,
             'rarity': _rarity
         })
 
         _price = py_.get(_nft_detail, 'price', 0)
 
         if not _price:
-            print(f'missing price for nft_type: {_nft_type}, rarity: {_rarity}')
-            sentry_sdk.capture_message(f'missing price for nft_type: {_nft_type}, rarity: {_rarity}')
+            print(f'missing price for contract: {_contract}, rarity: {_rarity}')
+            sentry_sdk.capture_message(f'missing price for contract: {_contract}, rarity: {_rarity}')
         else:
             NftsStatisticsModel.find_one_and_update({
-                'nft_type': _nft_type,
+                'address': _contract,
                 'rarity': _rarity
             }, {
                 '$inc': {
@@ -66,7 +66,6 @@ def on_token_created(_event):
                 },
                 '$set': {
                     'rarity': _rarity,
-                    'nft_type': _nft_type,
                     'contract': _contract,
                     'updated_time': dt_utcnow(),
                     'updated_by': 'nft_worker'
@@ -74,6 +73,7 @@ def on_token_created(_event):
             }, upsert=True)
 
         _insert_result = NftsHistoryModel.insert_one({
+            **_extra_data,
             'contract': _contract,
             'from_address': str(web3.constants.ADDRESS_ZERO),
             'to_address': _to_public_address,
@@ -92,15 +92,15 @@ def on_token_created(_event):
         },
             {
                 '$set': {
+                    **_extra_data,
                     'token_id': _token_id,
                     'address': _to_public_address,
                     'contract': _contract,
                     'rarity': _rarity,
-                    'nft_type': _nft_type,
                     'is_used': _is_used,
                     'token_uri': _token_uri,
                     'created_by': 'nft_worker',
-                    'created_time': dt_utcnow()
+                    'created_time': dt_utcnow(),
                 }}, upsert=True)
 
         # send_referral_reward.delay(
@@ -133,6 +133,7 @@ def on_transfer_nft(_event):
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
         _contract = py_.get(event, 'address').lower()
+        _extra_data = py_.get(event, 'extra_data', {})
 
         # NOTE: if not mint event will not execute anything
         if _from_public_address == web3.constants.ADDRESS_ZERO:
@@ -154,6 +155,7 @@ def on_transfer_nft(_event):
             return f'DONE - {_event_name} existed: {_event}'
 
         NftsHistoryModel.insert_one({
+            **_extra_data,
             'contract': _contract,
             'from_address': _from_public_address,
             'to_address': _to_public_address,
