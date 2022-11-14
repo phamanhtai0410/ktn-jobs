@@ -157,7 +157,7 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, commi
                 'address': _address_linked,
                 'address_linked': py_.get(_referral_level_2, 'address_linked'),
                 'buyer_address': address,
-                'referral_code': py_.get(_referral_level_2, 'code'),
+                'referral_code': py_.get(_referral_level_2, 'code_linked'),
                 'event': event,
                 'created_by': 'worker',
                 'created_time': dt_utcnow(),
