@@ -78,7 +78,9 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, commi
                 '$set': {
                     'address': address,
                     'code_linked': ref_code,
-                    'address_linked': _address_linked
+                    'address_linked': _address_linked,
+                    'updated_time': dt_utcnow(),
+                    'updated_by': 'worker'
                 }, 
             }, upsert=True)
 
@@ -89,6 +91,10 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, commi
                 }, {
                     '$pull': {
                         'address_referral': address
+                    },
+                    '$set': {
+                        'updated_time': dt_utcnow(),
+                        'updated_by': 'worker'
                     }
                 })
 
@@ -97,7 +103,11 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, commi
                 'address': _address_linked
             }, {
                 '$addToSet': {
-                    'address_referral': address
+                    'address_referral': address,
+                },
+                '$set': {
+                    'updated_time': dt_utcnow(),
+                    'updated_by': 'worker'
                 }
             })
         else:
