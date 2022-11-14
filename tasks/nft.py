@@ -87,7 +87,8 @@ def on_token_created(_event):
         })
         # NOTE: will insert metadata of nft with mint event
         NftsModel.find_one_and_update({
-            'token_id': _token_id
+            'token_id': _token_id,
+            'contract': _contract,
         },
             {
                 '$set': {
@@ -167,7 +168,8 @@ def on_transfer_nft(_event):
 
         if _event_name == Constants.EVENT_NAME_STAKE:
             NftsModel.find_one_and_update({
-                'token_id': _token_id
+                'token_id': _token_id,
+                'contract': _contract,
             }, {
                 '$set': {
                     'is_staking': True,
@@ -177,7 +179,8 @@ def on_transfer_nft(_event):
             }, upsert=True)
         elif _event_name == Constants.EVENT_NAME_UN_STAKE:
             NftsModel.find_one_and_update({
-                'token_id': _token_id
+                'token_id': _token_id,
+                'contract': _contract,
             }, {
                 '$set': {
                     'is_staking': False,
@@ -187,7 +190,8 @@ def on_transfer_nft(_event):
             }, upsert=True)
         elif _event_name == Constants.EVENT_NAME_TRANSFER:
             NftsModel.find_one_and_update({
-                'token_id': _token_id
+                'token_id': _token_id,
+                'contract': _contract,
             }, {
                 '$set': {
                     'old_address': _from_public_address,
