@@ -32,9 +32,9 @@ class Config():
         'worker.send_referral_reward': {'queue': 'ktn-jobs-queue'},
         'worker.on_mint_order_from_dev': {'queue': 'ktn-referral-commission-queue'},
         'worker.on_mint_order_from_dapp_creator': {'queue': 'ktn-referral-commission-queue'},
-        'worker.on_created_box': {'ktn-nft-queue'},
-        'worker.on_transfer_box': {'ktn-nft-queue'},
-        'worker.on_open_box': {'ktn-nft-queue'},
+        'worker.on_created_box': {'queue': 'ktn-nft-queue'},
+        'worker.on_transfer_box': {'queue': 'ktn-nft-queue'},
+        'worker.on_open_box': {'queue': 'ktn-nft-queue'},
 
     }
 
