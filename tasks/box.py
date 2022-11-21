@@ -149,7 +149,7 @@ def on_open_box(_event):
         event = json.loads(_event)
         _from_public_address = py_.get(event, 'args.from', '').lower()
         _to_public_address = py_.get(event, 'args.to', '').lower()
-        _token_id = py_.get(event, 'args.tokenId')
+        _token_ids = py_.get(event, 'args.tokenIds')
         _event_name = py_.get(event, 'event')
         _tx_hash = py_.get(event, 'transactionHash').lower()
         _block_number = py_.get(event, 'blockNumber')
@@ -157,38 +157,38 @@ def on_open_box(_event):
         _contract = py_.get(event, 'address').lower()
         _extra_data = py_.get(event, 'extra_data', {})
 
-        nft_history = NftsHistoryModel.find_one({
-            'tx_hash': _tx_hash,
-            'token_id': _token_id,
-            'event': _event_name
-        })
+        for _token_id in _token_ids:
 
-        if nft_history:
-            return f'DONE - {_event_name} existed: {_event}'
+            nft_history = NftsHistoryModel.find_one({
+                'tx_hash': _tx_hash,
+                'token_id': _token_id,
+                'event': _event_name
+            })
 
-        NftsHistoryModel.insert_one({
-            **_extra_data,
-            'contract': _contract,
-            'from_address': _from_public_address,
-            'to_address': _to_public_address,
-            'token_id': _token_id,
-            'event': _event_name,
-            'tx_hash': _tx_hash,
-            'block_number': _block_number,
-            'block_time': _block_time,
-            'created_time': dt_utcnow(),
-            'created_by': 'nft_worker'
-        })
-        
-        NftsModel.find_one_and_update({
-            'token_id': _token_id,
-            'contract': _contract,
-        }, {
-            '$set': {
-                'is_opened': True,
-                'updated_by': 'nft_worker',
-                'updated_time': dt_utcnow()
-            }}, upsert=True)
+            if not nft_history:
+                NftsHistoryModel.insert_one({
+                    **_extra_data,
+                    'contract': _contract,
+                    'from_address': _from_public_address,
+                    'to_address': _to_public_address,
+                    'token_id': _token_ids,
+                    'event': _event_name,
+                    'tx_hash': _tx_hash,
+                    'block_number': _block_number,
+                    'block_time': _block_time,
+                    'created_time': dt_utcnow(),
+                    'created_by': 'nft_worker'
+                })
+                
+                NftsModel.find_one_and_update({
+                    'token_id': _token_id,
+                    'contract': _contract,
+                }, {
+                    '$set': {
+                        'is_opened': True,
+                        'updated_by': 'nft_worker',
+                        'updated_time': dt_utcnow()
+                    }}, upsert=True)
 
         return f"DONE - update owner box info: {_event}"
     except:
