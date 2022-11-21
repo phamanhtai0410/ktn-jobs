@@ -16,7 +16,7 @@ db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 NftsModel = db['nfts']
 NftsHistoryModel = db['nfts_history']
 NftsStatisticsModel = db['nfts_statistics']
-NftDetailsModel = db['nft_details']
+MeshModel = db['meshes']
 
 
 @worker.task(name='worker.on_token_created', rate_limit='1000/s')
@@ -31,9 +31,10 @@ def on_token_created(_event):
         _event_name = py_.get(event, 'event')
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
-        _rarity = _token_detail[0]
+        _rarity = py_.to_integer(_token_detail[0][0])
+        _mesh_index = py_.to_integer(_token_detail[0][1])
+        _mesh_material = py_.to_integer(_token_detail[0][2])
         _token_uri = _token_detail[1]
-        _is_used = _token_detail[2]
         _extra_data = py_.get(event, 'extra_data', {})
 
         _nft_history = NftsHistoryModel.find_one({
@@ -46,9 +47,9 @@ def on_token_created(_event):
             return f'DONE - TokenCreated log existed: {_event}'
 
         # NOTE: statistic data
-        _nft_detail = NftDetailsModel.find_one({
+        _nft_detail = MeshModel.find_one({
             'address': _contract,
-            'rarity': _rarity
+            'mesh_index': _mesh_index
         })
 
         _price = py_.get(_nft_detail, 'price', 0)
@@ -97,7 +98,8 @@ def on_token_created(_event):
                     'address': _to_public_address,
                     'contract': _contract,
                     'rarity': _rarity,
-                    'is_used': _is_used,
+                    'mesh_index': _mesh_index,
+                    'mesh_material': _mesh_material,
                     'token_uri': _token_uri,
                     'created_by': 'nft_worker',
                     'created_time': dt_utcnow(),
