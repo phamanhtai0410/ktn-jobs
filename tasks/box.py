@@ -33,7 +33,7 @@ def on_created_box(_event):
         _block_time = py_.get(event, 'block_time')
         _box_index = _token_detail[1]
         _price = _token_detail[2]
-        _price = web3.Web3.fromWei(_price, 'ether')
+        _price = float(web3.Web3.fromWei(_price, 'ether'))
         _is_opened = _token_detail[3]
         _extra_data = py_.get(event, 'extra_data', {})
 
