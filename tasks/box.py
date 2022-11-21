@@ -33,6 +33,7 @@ def on_created_box(_event):
         _block_time = py_.get(event, 'block_time')
         _box_index = _token_detail[1]
         _price = _token_detail[2]
+        _price = web3.Web3.fromWei(_price, 'ether')
         _is_opened = _token_detail[3]
         _extra_data = py_.get(event, 'extra_data', {})
 
@@ -43,7 +44,7 @@ def on_created_box(_event):
         })
 
         if _nft_history:
-            return f'DONE - TokenCreated log existed: {_event}'
+            return f'DONE - Box TokenCreated log existed: {_event}'
 
         _insert_result = NftsHistoryModel.insert_one({
             **_extra_data,
@@ -99,7 +100,7 @@ def on_transfer_box(_event):
 
         # NOTE: if not mint event will not execute anything
         if _from_public_address == web3.constants.ADDRESS_ZERO:
-            return 'DONE - not execute logic with mint action'
+            return 'DONE - BOX not execute logic with mint action'
 
         nft_history = NftsHistoryModel.find_one({
             'tx_hash': _tx_hash,
@@ -108,7 +109,7 @@ def on_transfer_box(_event):
         })
 
         if nft_history:
-            return f'DONE - {_event_name} existed: {_event}'
+            return f'DONE - BOX {_event_name} existed: {_event}'
 
         NftsHistoryModel.insert_one({
             **_extra_data,
@@ -135,11 +136,11 @@ def on_transfer_box(_event):
                 'updated_time': dt_utcnow()
             }}, upsert=True)
 
-        return f"DONE - update owner box info: {_event}"
+        return f"DONE - BOX update owner box info: {_event}"
     except:
         traceback.print_exc()
         sentry_sdk.capture_exception()
-        return f"FAIL - on_transfer_box: {_event}"
+        return f"FAIL - BOX on_transfer_box: {_event}"
 
 
 @worker.task(name='worker.on_open_box', rate_limit='1000/s')
