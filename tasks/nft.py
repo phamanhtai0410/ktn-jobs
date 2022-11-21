@@ -59,14 +59,12 @@ def on_token_created(_event):
             sentry_sdk.capture_message(f'missing price for contract: {_contract}, rarity: {_rarity}')
         else:
             NftsStatisticsModel.find_one_and_update({
-                'address': _contract,
-                'rarity': _rarity
+                'address': _contract
             }, {
                 '$inc': {
                     'total': _price
                 },
                 '$set': {
-                    'rarity': _rarity,
                     'contract': _contract,
                     'updated_time': dt_utcnow(),
                     'updated_by': 'nft_worker'
