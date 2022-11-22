@@ -130,7 +130,7 @@ def save_referral_commission(address, ref_code, tx_hash, commission_value, commi
         'address_linked': _address_linked,
         'buyer_address': address,
         'referral_code': ref_code,
-        'event': event,
+        'event': json.dumps(event),
         'created_by': 'worker',
         'created_time': dt_utcnow(),
         'referral_level': 1
