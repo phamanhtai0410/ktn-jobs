@@ -168,7 +168,7 @@ class RedisState(EventScannerState):
     Simple load/store massive JSON on start up.
     """
 
-    def __init__(self, address, handle_log, init_block=0, handle_func='', parse_event=0, args_fields=[], dict_fields={}):
+    def __init__(self, address, handle_log, init_block=0, handle_func='', parse_event=0, args_fields=[], dict_fields={}, extra_data={}):
         self.state = None
         self.wk_handle = handle_log
         # get and set for each scan event
@@ -180,6 +180,7 @@ class RedisState(EventScannerState):
         self.args_fields = args_fields
         self.dict_fields = dict_fields
         self.parse_event = parse_event
+        self.extra_data = extra_data
         self.restore()
 
     def reset(self, init_block=0):
@@ -245,6 +246,12 @@ class RedisState(EventScannerState):
                 _wk_event = EventParser.parse(event, args_fields=self.args_fields, dict_fields=self.dict_fields)
             else:
                 _wk_event = json.loads(Web3.toJSON(event))
+            
+            if self.extra_data:
+                _wk_event = {
+                    **_wk_event,
+                    'extra_data':  self.extra_data
+                }
 
             _tx_hash = pydash.get(_wk_event, 'transactionHash')
             _tx_hash = _tx_hash.lower()
@@ -284,6 +291,7 @@ if __name__ == "__main__":
     parse_event = int(get(kw_dict, 'parse_event', 0))
     args_fields = get(kw_dict, 'args_fields', '')
     dict_fields = get(kw_dict, 'dict_fields', '')
+    extra_data =  get(kw_dict, 'extra_data', '')
 
     # args_fields: field1,field2,field3
     _args_fields = []
@@ -295,9 +303,17 @@ if __name__ == "__main__":
     if dict_fields:
         dict_fields = dict_fields.split(',')
         for dict_field in dict_fields:
-            _field = dict_field.split('#')
-            _dict_fields[_field[0]] = _field[1].split('-')
+            _value = dict_field.split('#')
+            _dict_fields[_value[0]] = _value[1].split('-')
     
+    # extra_data: field1#value1,fields2#value2
+    _extra_data = {}
+    if extra_data:
+        extra_data = extra_data.split(',')
+        for data in extra_data:
+            _value = data.split('#')
+            _extra_data[_value[0]] = _value[1]
+
     # flag for scan all from from_block
     scan_all = int(get(kw_dict, 'scan_all', 1))
 
@@ -319,7 +335,7 @@ if __name__ == "__main__":
     _providers = {}
     # init state scanner
     state = RedisState(address=contract, handle_log=_func, init_block=INIT_BLOCK_NUMBER, handle_func=str(handle_func), \
-        parse_event=parse_event, args_fields=_args_fields, dict_fields=_dict_fields)
+        parse_event=parse_event, args_fields=_args_fields, dict_fields=_dict_fields, extra_data=_extra_data)
     if scan_all:
         state.reset(INIT_BLOCK_NUMBER)
 
