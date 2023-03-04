@@ -10,6 +10,7 @@ from tasks.referral import send_referral_reward
 from worker import worker
 from config import Config
 from lib.utils import dt_utcnow
+from tasks.royalty import on_get_info_royalty
 
 db = MongoClient(Config.MONGO_URI, connect=False)['katana-dapp']
 
@@ -134,7 +135,11 @@ def on_transfer_nft(_event):
         _block_time = py_.get(event, 'block_time')
         _contract = py_.get(event, 'address').lower()
         _extra_data = py_.get(event, 'extra_data', {})
-
+        
+        # add task check balance royalty
+        _msg_balance_royalty = {"collection_address": _contract, "tx_hash": _tx_hash}
+        on_get_info_royalty.delay(json.dumps(_msg_balance_royalty))
+        
         # NOTE: if not mint event will not execute anything
         if _from_public_address == web3.constants.ADDRESS_ZERO:
             return 'DONE - not execute logic with mint action'

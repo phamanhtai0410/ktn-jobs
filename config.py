@@ -35,7 +35,10 @@ class Config():
         'worker.on_created_box': {'queue': 'ktn-nft-queue'},
         'worker.on_transfer_box': {'queue': 'ktn-nft-queue'},
         'worker.on_open_box': {'queue': 'ktn-nft-queue'},
-
+        
+        'worker.on_withdraw_royalty': {'queue': 'ktn-withdraw-royalty'},
+        'worker.on_get_info_royalty': {'queue': 'ktn-get-info-royalty'},
+        'worker.on_update_balance_royalty': {'queue': 'ktn-update-balance-royalty'},
     }
 
     REDIS_CLUSTER = json.loads(os.getenv("REDIS_CLUSTER", '[]'))
@@ -45,4 +48,7 @@ class Config():
     
     KATANA_NFT_CONTRACT = os.getenv('KATANA_NFT_CONTRACT')
     STAKING_CONTRACT = os.getenv('STAKING_CONTRACT')
+    TREASURY_ROYALTY_CONTRACT = os.getenv('TREASURY_ROYALTY_CONTRACT')
+    TOKEN_USDT = os.getenv('TOKEN_USDT')
+    TOKEN_WBNB = os.getenv('TOKEN_WBNB')
     IAPI_WALLET = os.getenv('IAPI_WALLET')

@@ -51,6 +51,43 @@ services:
       - base-network
     command: celery --app worker worker -Q ktn-nft-queue -l INFO -c 4
 
+  ktn-jobs-withdraw-royalty-queue:
+    image: ktn-jobs-withdraw-royalty
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: celery --app worker worker -Q ktn-withdraw-royalty -l INFO -c 4
+
+  ktn-jobs-get-info-royalty-queue:
+    image: ktn-jobs-get-info-royalty
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: celery --app worker worker -Q ktn-get-info-royalty -l INFO -c 4
+
+  ktn-jobs-update-balance-royalty-queue:
+    image: ktn-jobs-update-balance-royalty
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: celery --app worker worker -Q ktn-update-balance-royalty -l INFO -c 4
+    
+
   ktn-jobs-schedules-price:
     image:  ktn-jobs
     build: 

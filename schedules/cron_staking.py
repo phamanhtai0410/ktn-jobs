@@ -48,9 +48,8 @@ def add_point(address, amount, ref_id):
 
 def cron():
     print(f'# start cron price: {dt_utcnow().strftime("%H:%M:%S %d/%m/%Y")}')
-    _rpc = "https://data-seed-prebsc-1-s1.binance.org:8545/"
     _contract_address = Config.STAKING_CONTRACT
-    _web3 = Web3(Web3.HTTPProvider(_rpc))
+    _web3 = Web3(Web3.HTTPProvider(Config.RPC_URIS[0]))
 
     with open('abis/katana_staking.json') as file:
         contract_json = json.load(file)

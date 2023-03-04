@@ -10,3 +10,4 @@ from .staking import on_stake, on_un_stake, on_un_stake_all, on_update_staking_r
 from .referral import send_referral_reward
 from .referral_commission import on_mint_order_from_dev, on_mint_order_from_dapp_creator
 from .box import on_created_box, on_open_box, on_transfer_box
+from .royalty import on_withdraw_royalty, on_get_info_royalty, on_update_balance_royalty
