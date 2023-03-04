@@ -362,7 +362,7 @@ deploy_APP_NAME_JOBS_REFERRAL_stag:
       - stag
       
     
-deploy_APP_NAME_WITHDRAW_ROYALTY_WORKERL_stag:
+deploy_APP_NAME_WITHDRAW_ROYALTY_WORKER_stag:
   stage: deploy
   image:  alpine/helm:3.2.1
   tags:
