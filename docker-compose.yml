@@ -100,6 +100,18 @@ services:
       - base-network
     command: python3 -u schedules/cron_price.py  
 
+  ktn-jobs-schedules-price-cmc:
+    image:  ktn-jobs
+    build: 
+      context: .
+      dockerfile: Dockerfile-server
+    restart: always
+    volumes:
+      - ./:/webapps
+    networks:
+      - base-network
+    command: python3 -u schedules/cron_price_coingecko.py 
+
   ktn-jobs-worker:
     image:  ktn-jobs-worker
     build: 
