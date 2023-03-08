@@ -30,11 +30,12 @@ def on_save_price(price_data, pairs):
             
         if dex_name == 'Binance' or dex_name == 'CoinBase' \
             or dex_name == 'KuCoin':
-            _prices = price_response.get("data")    
+            _prices = price_response.get("data") 
             
         if dex_name == 'Gemini':
             _prices = price_response.get("prices")   
-     
+        return _prices
+    
     def get_price_pairs_key(symbol):
         return f'katana-dapp.price_pairs/{symbol}'
 
