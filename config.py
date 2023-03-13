@@ -24,6 +24,8 @@ class Config():
     CELERY_ROUTES = {
         'worker.on_transfer_nft': {'queue': 'ktn-nft-queue'},
         'worker.on_token_created': {'queue': 'ktn-nft-queue'},
+        'worker.on_upload_metadata_nft': {'queue': 'ktn-nft-queue'},
+        'worker.on_mint_from_box': {'queue': 'ktn-nft-queue'},
         'worker.on_stake': {'queue': 'ktn-staking-queue'},
         'worker.on_un_stake': {'queue': 'ktn-staking-queue'},
         'worker.on_un_stake_all': {'queue': 'ktn-staking-queue'},
@@ -52,3 +54,10 @@ class Config():
     TOKEN_USDT = os.getenv('TOKEN_USDT')
     TOKEN_WBNB = os.getenv('TOKEN_WBNB')
     IAPI_WALLET = os.getenv('IAPI_WALLET')
+    
+    # S3
+    AWS_KEY = os.getenv('AWS_KEY')
+    AWS_SECRET = os.getenv('AWS_SECRET')
+    BUCKET_NAME = os.getenv('BUCKET_NAME')
+    S3_HOST = os.getenv('S3_HOST')
+    S3_STATIC = os.getenv('S3_STATIC')
