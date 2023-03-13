@@ -52,7 +52,7 @@ services:
     command: celery --app worker worker -Q ktn-nft-queue -l INFO -c 4
 
   ktn-jobs-withdraw-royalty-queue:
-    image: ktn-jobs-withdraw-royalty
+    image: ktn-jobs
     build: 
       context: .
       dockerfile: Dockerfile-server
@@ -64,7 +64,7 @@ services:
     command: celery --app worker worker -Q ktn-withdraw-royalty -l INFO -c 4
 
   ktn-jobs-get-info-royalty-queue:
-    image: ktn-jobs-get-info-royalty
+    image: ktn-jobs
     build: 
       context: .
       dockerfile: Dockerfile-server
@@ -76,7 +76,7 @@ services:
     command: celery --app worker worker -Q ktn-get-info-royalty -l INFO -c 4
 
   ktn-jobs-update-balance-royalty-queue:
-    image: ktn-jobs-update-balance-royalty
+    image: ktn-jobs
     build: 
       context: .
       dockerfile: Dockerfile-server
@@ -100,7 +100,7 @@ services:
       - base-network
     command: python3 -u schedules/cron_price.py  
 
-  ktn-jobs-schedules-price-cmc:
+  ktn-jobs-schedules-price-cgk:
     image:  ktn-jobs
     build: 
       context: .
@@ -113,7 +113,7 @@ services:
     command: python3 -u schedules/cron_price_coingecko.py 
 
   ktn-jobs-worker:
-    image:  ktn-jobs-worker
+    image:  ktn-jobs
     build: 
       context: .
       dockerfile: Dockerfile-server
