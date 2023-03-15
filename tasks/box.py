@@ -24,19 +24,20 @@ NftDetailsModel = db['nft_details']
 def on_created_box(_event):
     try:
         event = json.loads(_event)
-        _to_public_address = py_.get(event, 'args.to', '').lower()
-        _tx_hash = py_.get(event, 'transactionHash').lower()
-        _token_id = py_.get(event, 'args.tokenId')
-        _contract = py_.get(event, 'address').lower()
-        _token_detail = py_.get(event, 'args.details')
-        _event_name = py_.get(event, 'event')
         _block_number = py_.get(event, 'blockNumber')
         _block_time = py_.get(event, 'block_time')
-        _box_index = _token_detail[1]
-        _price = _token_detail[2]
-        _price = float(web3.Web3.fromWei(_price, 'ether'))
-        _is_opened = _token_detail[3]
+        _event_name = py_.get(event, 'event')
+        _tx_hash = py_.get(event, 'transactionHash').lower()
+        _contract = py_.get(event, 'address').lower()
         _extra_data = py_.get(event, 'extra_data', {})
+
+        # Event's data
+        _to_public_address = py_.get(event, 'args.to', '').lower()
+        _token_id = py_.get(event, 'args.tokenId')
+        _token_detail = py_.get(event, 'args.details')
+        
+        _box_index = _token_detail[1]
+        _is_opened = _token_detail[2]
 
         _nft_history = NftsHistoryModel.find_one({
             'token_id': _token_id,
@@ -73,7 +74,6 @@ def on_created_box(_event):
                     'contract': _contract,
                     'box_index': _box_index,
                     'is_opened': _is_opened,
-                    'price': _price,
                     'created_by': 'nft_worker',
                     'created_time': dt_utcnow(),
                 }}, upsert=True)
