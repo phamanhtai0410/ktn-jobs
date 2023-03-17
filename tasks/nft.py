@@ -419,7 +419,7 @@ def on_upload_metadata_nft(self, _event_infos):
             Bucket=Config.BUCKET_NAME,
             Key=_key,
             Body=json.dumps(_metadata),
-            ContentType='text/html'
+            ContentType='application/json'
         )
         return f"DONE - update metadata NFT to S3 with info: {_event_infos}"
     except Exception as exc:
