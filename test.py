@@ -41,14 +41,15 @@ def main():
             "attributes": _chosen_type
         }
     print(_metadata)
-    _key = f"metadata/{_contract_address}/5.json"
+    _key = f"metadata/{_contract_address}/1001.json"
     s3.put_object(
         Bucket=Config.BUCKET_NAME,
         Key=_key,
         Body=json.dumps(_metadata),
-        ContentType='text/html'
+        ContentType='application/json',
+        ContentEncoding='gzip'
     )
-    print("DONE - update metadata NFT to S3 ")
+    print(f"DONE - update metadata NFT to S3: {Config.S3_STATIC}/{_key}")
 
 if __name__ == "__main__":
     main()
