@@ -82,9 +82,11 @@ def on_token_created(_event):
         _chosen_type = _types_list[_nft_index]
         _image = py_.get(_chosen_type, "ImageUrl")
         _animation_url = py_.get(_chosen_type, "AnimationModelUrl")
+        _price = py_.get(_chosen_type, 'price', 0)
 
         # pop the unnecessary infos in `attributes`
         _chosen_type.pop("rate")
+        _chosen_type.pop("price")
         if py_.get(_chosen_type, "ImageUrl"):
             _chosen_type.pop("ImageUrl")
         if py_.get(_chosen_type, "AnimationModelUrl"):
@@ -110,13 +112,6 @@ def on_token_created(_event):
         # Push mess to queue `upload_metadata_nft`
         on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
         
-        # NOTE: statistic data
-        _nft_price = NFTPricesModel.find_one({
-            "contract": _contract,
-            "nft_index": _nft_index
-        })
-        _price = py_.get(_nft_price, 'price', 0)
-
         # Check price NFT && Update NFT [TODO]
         if not _price:
             print(f'`missing` price for contract: {_contract}')
@@ -317,7 +312,8 @@ def on_mint_from_box(self, _event):
             _image = py_.get(_chosen_type, "ImageUrl", "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png")
             _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
             _description = py_.get(_collection, "description")
-
+            _price = py_.get(_chosen_type, 'price', 0)
+            
             # pop the unnecessary infos in `attributes`
             _chosen_type.pop("rate")
             _chosen_type.pop("price")
@@ -343,8 +339,6 @@ def on_mint_from_box(self, _event):
                 "metadata": _metadata
             }
             on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
-        
-            _price = py_.get(_chosen_type, 'price', 0)
 
             # Check price NFT && Update NFT [TODO]
             if not _price:
