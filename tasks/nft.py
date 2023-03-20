@@ -312,8 +312,8 @@ def on_mint_from_box(self, _event):
             _chosen_type = _types_list[_result_idx]
 
             # get some attributes
-            _image = py_.get(_chosen_type, "ImageUrl")
-            _animation_url = py_.get(_chosen_type, "AnimationModelUrl")
+            _image = py_.get(_chosen_type, "ImageUrl", "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png")
+            _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
             _description = py_.get(_collection, "description")
 
             # pop the unnecessary infos in `attributes`
