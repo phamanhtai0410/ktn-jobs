@@ -121,7 +121,7 @@ def on_token_created(_event):
                 'address': _contract
             }, {
                 '$inc': {
-                    'total': _price
+                    'total': int(_price)
                 },
                 '$set': {
                     'contract': _contract,
@@ -313,7 +313,7 @@ def on_mint_from_box(self, _event):
             _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
             _description = py_.get(_collection, "description")
             _price = py_.get(_chosen_type, 'price', 0)
-            
+
             # pop the unnecessary infos in `attributes`
             _chosen_type.pop("rate")
             _chosen_type.pop("price")
