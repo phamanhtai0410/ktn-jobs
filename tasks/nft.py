@@ -339,13 +339,8 @@ def on_mint_from_box(self, _event):
                 "metadata": _metadata
             }
             on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
-            
-            # NOTE: statistic data
-            _nft_price = NFTPricesModel.find_one({
-                "contract": _contract,
-                "nft_index": _result_idx
-            })
-            _price = py_.get(_nft_price, 'price', 0)
+        
+            _price = py_.get(_chosen_type, 'price', 0)
 
             # Check price NFT && Update NFT [TODO]
             if not _price:
