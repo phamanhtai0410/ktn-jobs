@@ -319,8 +319,10 @@ def on_mint_from_box(self, _event):
             # pop the unnecessary infos in `attributes`
             _chosen_type.pop("rate")
             _chosen_type.pop("price")
-            _chosen_type.pop("ImageUrl")
-            _chosen_type.pop("AnimationModelUrl")
+            if py_.get(_chosen_type, "ImageUrl"):
+                _chosen_type.pop("ImageUrl")
+            if py_.get("AnimationModelUrl"):
+                _chosen_type.pop("AnimationModelUrl")
             _chosen_type.pop("AssetDescription")
 
             # structure the `metadata` object for message
