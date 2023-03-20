@@ -33,20 +33,27 @@ def main():
     _chosen_type.pop("ImageUrl")
     _chosen_type.pop("AnimationModelUrl")
     _chosen_type.pop("AssetDescription")
+
     _metadata = {
             "name": py_.get(_collection, "name"),
             "description": py_.get(_collection, "description"),
             "image": _image,
             "animation_url": _animation_url,
-            "attributes": _chosen_type
+            "attributes": [
+                {
+                    "trait_type": _k,
+                    "value": _v
+                }
+                for _k, _v in _chosen_type.items()
+            ]
         }
     print(_metadata)
-    _key = f"metadata/{_contract_address}/1001.json"
+    _key = f"metadata/{_contract_address}/1005.json"
     s3.put_object(
         Bucket=Config.BUCKET_NAME,
         Key=_key,
         Body=json.dumps(_metadata),
-        ContentType='application/json',
+        ContentType='plain/text',
         ContentEncoding='gzip'
     )
     print(f"DONE - update metadata NFT to S3: {Config.S3_STATIC}/{_key}")
