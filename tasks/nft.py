@@ -112,6 +112,22 @@ def on_token_created(_event):
         # Push mess to queue `upload_metadata_nft`
         on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
         
+        _metadata_default = {"name": "KATA Box", "description": "Mystery box", "image": "https://bafybeigt7kulmg22lkalr5s4gc6rh23dwkykozphwey7ayaxvaeb6yezsq.ipfs.dweb.link/kata_box.png", "attributes": [{"trait_type": "Type", "value": "Box"}]}
+        _msg_update_meta_data_default = {
+            "contract": _contract,
+            "token_id": _token_id,
+            "metadata": _metadata_default
+        }
+        # Push mess to queue `upload_metadata_nft` default by time
+        on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data_default), True) # upload metadata to s3
+        
+        # NOTE: statistic data
+        _nft_price = NFTPricesModel.find_one({
+            "contract": _contract,
+            "nft_index": _nft_index
+        })
+        _price = py_.get(_nft_price, 'price', 0)
+
         # Check price NFT && Update NFT [TODO]
         if not _price:
             print(f'`missing` price for contract: {_contract}')
@@ -401,13 +417,15 @@ def on_mint_from_box(self, _event):
         return f"FAIL - on_mint_from_box: {_event}"
     
 @worker.task(bind=True, name='worker.on_upload_metadata_nft', rate_limit='1000/s', max_retries=3)
-def on_upload_metadata_nft(self, _event_infos):
+def on_upload_metadata_nft(self, _event_infos, _is_default=False):
     try:
         event = json.loads(_event_infos)
         _contract_address = py_.get(event, 'contract').lower()
         _token_id = py_.get(event, 'token_id')
         _metadata =  py_.get(event, 'metadata')
         _key = f"metadata/{_contract_address}/{_token_id}.json"
+        if _is_default: #  case before maxTime
+            _key = f"metadata/collection/{_contract_address}/{_token_id}.json"
         LoggerTask.debug(f' + path upload metadata NFT: {_key}')
 
         s3.put_object(
