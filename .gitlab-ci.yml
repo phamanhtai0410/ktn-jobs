@@ -18,8 +18,10 @@ variables:
   APP_NAME_UPDATE_BALANCE_ROYALTY_WORKER: ktn-jobs-update-balance-royalty-worker
   APP_NAME_GET_INFO_ROYALTY_WORKER: ktn-jobs-get-info-royalty-worker
   CONTAINER_REPO_ASIA_STAG: 968557029040.dkr.ecr.ap-southeast-1.amazonaws.com/stag/ktn-jobs
+  ONTAINER_REPO_ASIA_PROD: harbor.atomsolution.vn/ktn/ktn-jobs
   NAMESPACE_STAG: ktn-jobs-stag
   FULLREPO_ASIA_STAG: $CONTAINER_REPO_ASIA_STAG:$CI_COMMIT_SHA
+  FULLREPO_ASIA_PROD: $CONTAINER_REPO_ASIA_PROD:$CI_COMMIT_SHORT_SHA
   HELM_VALUE: ${CI_COMMIT_REF_NAME}
   HELM_VERSION: 3.0.1
   KUBECTL_VERSION: v1.22.0
@@ -32,6 +34,8 @@ variables:
  # DOCKER_HOST: tcp://localhost:2375
   DOCKER_TLS_CERTDIR: ""
   GIT_SUBMODULE_STRATEGY: recursive
+  PROD_SERVER_1_IP: 3.66.46.121
+  PROD_SERVER_USER: root
 
 stages:
   - build
@@ -87,6 +91,50 @@ build_stag:
   artifacts:
     paths:
     - build_sync.json
+
+build:
+  stage: build
+  image: docker:19.03.1
+  services:
+    - docker:19.03.1-dind
+  tags:
+    - esol-stag-test
+  before_script:
+    - apk add --no-cache curl jq python py-pip wget git bash
+    - git submodule sync --recursive
+    - git submodule update --init --remote --recursive
+    - git submodule add -f --branch stag https://read-token:$GITLAB_TOKEN@gitlab.rinznetwork.com/katana/ktn-lib.git lib
+  script:
+    - cp $PROD_ENV .env
+    - docker login "$CI_REGISTRY" -u "$CI_REGISTRY_USER" -p "$CI_REGISTRY_PASSWORD"
+    - docker build -t $FULLREPO_ASIA_PROD . -f Dockerfile
+    - docker image push $FULLREPO_ASIA_PROD
+
+  only:
+    - master
+
+deploy-prod-server1:
+  stage: deploy
+  image: docker:19.03.1
+  services:
+    - docker:19.03.1-dind
+  tags:
+    - esol-stag
+  before_script:
+    - apk add openssh
+    - mkdir -p ~/.ssh
+    - echo "$SSH_PROD_SERVER_PRIVATE_KEY" | tr -d '\r' > ~/.ssh/id_rsa
+    - chmod 400 ~/.ssh/id_rsa
+    - eval "$(ssh-agent -s)"
+    - ssh-add ~/.ssh/id_rsa
+    - ssh-keyscan -H $PROD_SERVER_1_IP >> ~/.ssh/known_hosts
+  script:
+    - sed -i -e "s#\[IMAGE_REPO\]#$FULLREPO_ASIA_PROD#g" docker-compose.yml 
+    - scp docker-compose.yml  root@${PROD_SERVER_1_IP}:/data/cicd/ktn-jobs/docker-compose.yml 
+    - ssh root@$PROD_SERVER_1_IP "docker login -u ${CI_REGISTRY_USER} -p ${CI_REGISTRY_PASSWORD} ${CI_REGISTRY}"
+    - ssh root@$PROD_SERVER_1_IP "cd /data/cicd/ktn-jobs/ && docker-compose up --build -d"
+  only:
+    - master
 
 deploy_stag:
   stage: deploy
