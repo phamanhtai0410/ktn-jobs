@@ -18,7 +18,7 @@ variables:
   APP_NAME_UPDATE_BALANCE_ROYALTY_WORKER: ktn-jobs-update-balance-royalty-worker
   APP_NAME_GET_INFO_ROYALTY_WORKER: ktn-jobs-get-info-royalty-worker
   CONTAINER_REPO_ASIA_STAG: 968557029040.dkr.ecr.ap-southeast-1.amazonaws.com/stag/ktn-jobs
-  ONTAINER_REPO_ASIA_PROD: harbor.atomsolution.vn/ktn/ktn-jobs
+  CONTAINER_REPO_ASIA_PROD: harbor.atomsolution.vn/ktn/ktn-jobs
   NAMESPACE_STAG: ktn-jobs-stag
   FULLREPO_ASIA_STAG: $CONTAINER_REPO_ASIA_STAG:$CI_COMMIT_SHA
   FULLREPO_ASIA_PROD: $CONTAINER_REPO_ASIA_PROD:$CI_COMMIT_SHORT_SHA
