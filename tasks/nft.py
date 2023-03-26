@@ -5,6 +5,7 @@ import sentry_sdk
 import json
 import web3
 import boto3
+import random
 
 from constants import Constants
 from tasks.referral import send_referral_reward
@@ -79,7 +80,25 @@ def on_token_created(_event):
             "address": _contract
         })
         _types_list = py_.get(_collection, "types_list")
-        _chosen_type = _types_list[_nft_index]
+        _total_supply = py_.get(_collection, "total_supply")
+        
+        # _chosen_type = _types_list[_nft_index]
+        _arr_shuffle = []
+        _choose_idxs = [py_.get(_type, "AssetRarity") for _type in  _types_list]
+        for _type in _types_list:
+            _amount_item = int(_total_supply * (py_.get(_type, "rate") / 100.0))
+            _arr_shuffle += [py_.get(_type, "AssetRarity") for i in range(_amount_item)]
+        if len(_arr_shuffle) < _total_supply:
+            _lost = _total_supply - len(_arr_shuffle)
+            _arr_shuffle += [_arr_shuffle[0] for i in range(_lost)]
+        # shuffle array
+        random.shuffle(_arr_shuffle)
+        random.shuffle(_arr_shuffle)
+        _choose_rarity = _arr_shuffle[_token_id]
+        print("_choose_rarity ", _choose_rarity)
+        _choose_idx_type = _choose_idxs.index(_choose_rarity)
+        _chosen_type = _types_list[_choose_idx_type]
+            
         _image = py_.get(_chosen_type, "ImageUrl", "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png")
         _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
         _price = py_.get(_chosen_type, 'price', 0)
@@ -285,6 +304,7 @@ def on_transfer_nft(_event):
         sentry_sdk.capture_exception()
         return f"FAIL - on_transfer_nft: {_event}"
 
+    
 @worker.task(bind=True, name='worker.on_mint_from_box', rate_limit='1000/s', max_retries=3)
 def on_mint_from_box(self, _event):
     try:
@@ -310,6 +330,7 @@ def on_mint_from_box(self, _event):
             })
             _types_list = py_.get(_collection, "types_list")
             _rates = [py_.get(_type, "rate") for _type in _types_list]
+            _total_supply = py_.get(_collection, "total_supply")
             
             # Check if event already was saved in to logs
             _nft_history = NftsHistoryModel.find_one({
@@ -321,9 +342,23 @@ def on_mint_from_box(self, _event):
                 return f'DONE - TokenCreated log existed: {_event}'
 
             # Metadata for random opening
-            _result_idx = check_result_random(_rates, _random)
-            _chosen_type = _types_list[_result_idx]
-
+            # _result_idx = check_result_random(_rates, _random)
+            # _chosen_type = _types_list[_result_idx]
+            _arr_shuffle = []
+            _choose_idxs = [py_.get(_type, "AssetRarity") for _type in  _types_list]
+            for _type in _types_list:
+                _amount_item = int(_total_supply * (py_.get(_type, "rate") / 100.0))
+                _arr_shuffle += [py_.get(_type, "AssetRarity") for i in range(_amount_item)]
+            if len(_arr_shuffle) < _total_supply:
+                _lost = _total_supply - len(_arr_shuffle)
+                _arr_shuffle += [_arr_shuffle[0] for i in range(_lost)]
+            # shuffle array
+            random.shuffle(_arr_shuffle)
+            random.shuffle(_arr_shuffle)
+            _choose_rarity = _arr_shuffle[_token_id]
+            print("_choose_rarity ", _choose_rarity)
+            _choose_idx_type = _choose_idxs.index(_choose_rarity)
+            _chosen_type = _types_list[_choose_idx_type]
             # get some attributes
             _image = py_.get(_chosen_type, "ImageUrl", "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png")
             _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
