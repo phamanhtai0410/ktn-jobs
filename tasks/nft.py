@@ -140,12 +140,6 @@ def on_token_created(_event):
         # Push mess to queue `upload_metadata_nft` default by time
         on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data_default), True) # upload metadata to s3
         
-        # NOTE: statistic data
-        _nft_price = NFTPricesModel.find_one({
-            "contract": _contract,
-            "nft_index": _nft_index
-        })
-        _price = py_.get(_nft_price, 'price', 0)
 
         # Check price NFT && Update NFT [TODO]
         if not _price:
@@ -391,7 +385,7 @@ def on_mint_from_box(self, _event):
             }
             on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
 
-            # Check price NFT && Update NFT [TODO]
+            # Check price NFT && Update NFT
             if not _price:
                 print(f'`missing` price for contract: {_contract}')
                 sentry_sdk.capture_message(f'missing price for contract: {_contract}')
@@ -435,7 +429,7 @@ def on_mint_from_box(self, _event):
                         'token_id': _token_id,
                         'address': _to_public_address,
                         'contract': _contract,
-                        "nft_index": _result_idx,
+                        "nft_index": _nft_index,
                         'token_uri': _token_uri,
                         'created_by': 'nft_worker',
                         'created_time': dt_utcnow(),

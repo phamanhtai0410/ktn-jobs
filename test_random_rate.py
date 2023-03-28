@@ -139,82 +139,82 @@ if __name__ == "__main__":
 #    .limit(100)
 
 # db.collection.insert({
-# 	"collection_id" : 15,
+# 	"collection_id" : 20,
 # 	"name" : "Balance",
 # 	"symbol" : "KTN_202",
 # 	"description" : "The head",
 # 	"types_list":[
-# 	{
-# 		"AssetUniqueIndex" : "",
-#             "EventDataTableID" : "",
-#             "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
-#             "AssetRarity" : "UNCOMMON",
-#             "AssetID" : "KatanaInuBlueZillaAxes_1",
-#             "ImageUrl" : "test",
-#             "DataTableID" : "208",
-#             "AnimationModelUrl" : "test1",
-#             "rate" : Double("20"),
-#             "price" : "10"
-#         },
-#         {
-#             "AssetUniqueIndex" : "",
-#             "EventDataTableID" : "",
-#             "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
-#             "AssetRarity" : "RARE",
-#             "AssetID" : "KatanaInuBlueZillaAxes_2",
-#             "ImageUrl" : "test",
-#             "DataTableID" : "208",
-#             "AnimationModelUrl" : "test1",
-#             "rate" : Double("20"),
-#             "price" : "10"
-#         },
-#         {
-#             "AssetUniqueIndex" : "",
-#             "EventDataTableID" : "",
-#             "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
-#             "AssetRarity" : "MYSTICAL",
-#             "AssetID" : "KatanaInuBlueZillaAxes_3",
-#             "ImageUrl" : "test",
-#             "DataTableID" : "208",
-#             "AnimationModelUrl" : "test1",
-#             "rate" : Double("20"),
-#             "price" : "10"
-#         },
-#         {
-#             "AssetUniqueIndex" : "",
-#             "EventDataTableID" : "",
-#             "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
-#             "AssetRarity" : "LEGENDARY",
-#             "AssetID" : "KatanaInuBlueZillaAxes_4",
-#             "ImageUrl" : "test",
-#             "DataTableID" : "208",
-#             "AnimationModelUrl" : "test1",
-#             "rate" : Double("20"),
-#             "price" : "10"
-#         },
-#         {
-#             "AssetUniqueIndex" : "",
-#             "EventDataTableID" : "",
-#             "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
-#             "AssetRarity" : "IMMORTAL",
-#             "AssetID" : "KatanaInuBlueZillaAxes_5",
-#             "ImageUrl" : "test",
-#             "DataTableID" : "208",
-#             "AnimationModelUrl" : "test1",
-#             "rate" : Double("20"),
-#             "price" : "10"
-#         }
-#     ],
-# 	"deployed" : false,
-# 	"royalty_rate" : 2000,
-# 	"total_supply" : 10000,
-# 	"created_by" : "game@launcher",
-# 	"created_time" : ISODate("2023-03-20T10:12:53.762+07:00"),
-# 	"updated_time" : ISODate("2023-03-20T10:12:53.762+07:00"),
-# 	"category" : "Character",
-# 	"chain" : "BSC"
-# }
-# )
+	{
+		"AssetUniqueIndex" : "",
+            "EventDataTableID" : "",
+            "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
+            "AssetRarity" : "UNCOMMON",
+            "AssetID" : "KatanaInuBlueZillaAxes_1",
+            "ImageUrl" : "test",
+            "DataTableID" : "208",
+            "AnimationModelUrl" : "test1",
+            "rate" : Double("20"),
+            "price" : "10"
+        },
+        {
+            "AssetUniqueIndex" : "",
+            "EventDataTableID" : "",
+            "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
+            "AssetRarity" : "RARE",
+            "AssetID" : "KatanaInuBlueZillaAxes_2",
+            "ImageUrl" : "test",
+            "DataTableID" : "208",
+            "AnimationModelUrl" : "test1",
+            "rate" : Double("20"),
+            "price" : "10"
+        },
+        {
+            "AssetUniqueIndex" : "",
+            "EventDataTableID" : "",
+            "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
+            "AssetRarity" : "MYSTICAL",
+            "AssetID" : "KatanaInuBlueZillaAxes_3",
+            "ImageUrl" : "test",
+            "DataTableID" : "208",
+            "AnimationModelUrl" : "test1",
+            "rate" : Double("20"),
+            "price" : "10"
+        },
+        {
+            "AssetUniqueIndex" : "",
+            "EventDataTableID" : "",
+            "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
+            "AssetRarity" : "LEGENDARY",
+            "AssetID" : "KatanaInuBlueZillaAxes_4",
+            "ImageUrl" : "test",
+            "DataTableID" : "208",
+            "AnimationModelUrl" : "test1",
+            "rate" : Double("20"),
+            "price" : "10"
+        },
+        {
+            "AssetUniqueIndex" : "",
+            "EventDataTableID" : "",
+            "AssetDescription" : "The head of a mythical beast sits atop of this mighty axe.",
+            "AssetRarity" : "IMMORTAL",
+            "AssetID" : "KatanaInuBlueZillaAxes_5",
+            "ImageUrl" : "test",
+            "DataTableID" : "208",
+            "AnimationModelUrl" : "test1",
+            "rate" : Double("20"),
+            "price" : "10"
+        }
+    ],
+	"deployed" : false,
+	"royalty_rate" : 2000,
+	"total_supply" : 10000,
+	"created_by" : "game@launcher",
+	"created_time" : ISODate("2023-03-20T10:12:53.762+07:00"),
+	"updated_time" : ISODate("2023-03-20T10:12:53.762+07:00"),
+	"category" : "Character",
+	"chain" : "BSC"
+}
+)
 
 
 
