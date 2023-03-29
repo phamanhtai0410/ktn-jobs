@@ -25,6 +25,7 @@ NftsStatisticsModel = db['nfts_statistics']
 MeshModel = db['meshes']
 NFTPricesModel = db['nft_prices']
 CollectionModel = db['collection']
+ShuffledCollectionModel = db['shuffled_collection']
 
 s3 = boto3.client(
     "s3",
@@ -92,21 +93,12 @@ def on_token_created(_event):
         if _is_box:
             _chosen_type = _types_list[_nft_index]
         else:
-            _arr_shuffle = []
-            _choose_idxs = [py_.get(_type, "AssetRarity") for _type in  _types_list]
-            for _type in _types_list:
-                _amount_item = int(_total_supply * (py_.get(_type, "rate") / 100.0))
-                _arr_shuffle += [py_.get(_type, "AssetRarity") for i in range(_amount_item)]
-            if len(_arr_shuffle) < _total_supply:
-                _lost = _total_supply - len(_arr_shuffle)
-                _arr_shuffle += [_arr_shuffle[0] for i in range(_lost)]
-            # shuffle array
-            random.shuffle(_arr_shuffle)
-            random.shuffle(_arr_shuffle)
-            _choose_rarity = _arr_shuffle[_token_id]
-            print("_choose_rarity ", _choose_rarity)
-            _choose_idx_type = _choose_idxs.index(_choose_rarity)
-            _chosen_type = _types_list[_choose_idx_type]
+            _shuffled_collection =  ShuffledCollectionModel.find_one(filter={
+                'contract': _contract
+            })
+            _collection_indexes = py_.get(_shuffled_collection, 'shuffled_indexes', [])
+            _index = _collection_indexes[_token_id - 1]
+            _chosen_type = _types_list[_index]
         
         # Pick attributes of the chosen type
         _image = py_.get(
