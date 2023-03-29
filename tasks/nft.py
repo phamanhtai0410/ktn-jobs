@@ -324,7 +324,152 @@ def on_transfer_nft(_event):
         traceback.print_exc()
         sentry_sdk.capture_exception()
         return f"FAIL - on_transfer_nft: {_event}"
-    
+
+@worker.task(bind=True, name='worker.on_mint_from_box', rate_limit='1000/s', max_retries=3)
+def on_mint_from_box(self, _event):
+    try:
+        event = json.loads(_event)
+        _contract = py_.get(event, 'contract').lower()
+        _tx_hash = py_.get(event, 'transactionHash').lower()
+        _event_name = py_.get(event, 'event')
+        _block_number = py_.get(event, 'blockNumber')
+        _block_time = py_.get(event, 'block_time')
+        _extra_data = py_.get(event, 'extra_data', {})
+
+        # Event's data
+        _to_public_address = py_.get(event, 'args.to').lower()
+        _random_numbers = py_.get(event, 'args.randomNumber', [])
+        _token_ids = py_.get(event, 'args.mintedTokenId', [])
+        
+        for idx, _token_id in enumerate(_token_ids):
+            _token_uri = f"{Config.S3_STATIC}/metadata/{_contract}/{_token_id}.json"
+            _random = _random_numbers[idx]
+
+            _collection = CollectionModel.find_one(filter={
+                "address": _contract
+            })
+            _types_list = py_.get(_collection, "types_list")
+            _rates = [py_.get(_type, "rate") for _type in _types_list]
+            _total_supply = py_.get(_collection, "total_supply")
+            
+            # Check if event already was saved in to logs
+            _nft_history = NftsHistoryModel.find_one({
+                'token_id': _token_id,
+                'event': _event_name,
+                'tx_hash': _tx_hash
+            })
+            if _nft_history:
+                return f'DONE - TokenCreated log existed: {_event}'
+
+            # Metadata for random opening
+            # _result_idx = check_result_random(_rates, _random)
+            # _chosen_type = _types_list[_result_idx]
+            _arr_shuffle = []
+            _choose_idxs = [py_.get(_type, "AssetRarity") for _type in  _types_list]
+            for _type in _types_list:
+                _amount_item = int(_total_supply * (py_.get(_type, "rate") / 100.0))
+                _arr_shuffle += [py_.get(_type, "AssetRarity") for i in range(_amount_item)]
+            if len(_arr_shuffle) < _total_supply:
+                _lost = _total_supply - len(_arr_shuffle)
+                _arr_shuffle += [_arr_shuffle[0] for i in range(_lost)]
+            # shuffle array
+            random.shuffle(_arr_shuffle)
+            random.shuffle(_arr_shuffle)
+            _choose_rarity = _arr_shuffle[_token_id]
+            print("_choose_rarity ", _choose_rarity)
+            _choose_idx_type = _choose_idxs.index(_choose_rarity)
+            _chosen_type = _types_list[_choose_idx_type]
+            # get some attributes
+            _image = py_.get(_chosen_type, "ImageUrl", "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png")
+            _animation_url = py_.get(_chosen_type, "AnimationModelUrl", "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb")
+            _description = py_.get(_collection, "description")
+            _price = py_.get(_chosen_type, 'price', 0)
+
+            # pop the unnecessary infos in `attributes`
+            _chosen_type.pop("rate")
+            _chosen_type.pop("price")
+            if py_.get(_chosen_type, "ImageUrl"):
+                _chosen_type.pop("ImageUrl")
+            if py_.get(_chosen_type, "AnimationModelUrl"):
+                _chosen_type.pop("AnimationModelUrl")
+            _chosen_type.pop("AssetDescription")
+
+            # structure the `metadata` object for message
+            _metadata = {
+                "name": py_.get(_collection, "name"),
+                "description": _description,
+                "image": _image,
+                "animation_url": _animation_url,
+                "attributes": _chosen_type
+            }
+
+            # Full-message to task upload metadata
+            _msg_update_meta_data = {
+                "contract": _contract,
+                "token_id": _token_id,
+                "metadata": _metadata
+            }
+            on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
+
+            # Check price NFT && Update NFT
+            if not _price:
+                print(f'`missing` price for contract: {_contract}')
+                sentry_sdk.capture_message(f'missing price for contract: {_contract}')
+            else:
+                NftsStatisticsModel.find_one_and_update({
+                    'address': _contract
+                }, {
+                    '$inc': {
+                        'total': _price
+                    },
+                    '$set': {
+                        'contract': _contract,
+                        'updated_time': dt_utcnow(),
+                        'updated_by': 'nft_worker'
+                    }
+                }, upsert=True)
+
+            _insert_result = NftsHistoryModel.insert_one({
+                **_extra_data,
+                'contract': _contract,
+                'from_address': str(web3.constants.ADDRESS_ZERO),
+                'to_address': _to_public_address,
+                'token_id': _token_id,
+                'event': _event_name,
+                'tx_hash': _tx_hash,
+                'block_number': _block_number,
+                'block_time': _block_time,
+                'created_time': dt_utcnow(),
+                'created_by': 'nft_worker'
+            })
+
+            # NOTE: will insert metadata of nft with mint event
+            NftsModel.find_one_and_update(
+                {
+                    'token_id': _token_id,
+                    'contract': _contract,
+                },
+                {
+                    '$set': {
+                        **_extra_data,
+                        'token_id': _token_id,
+                        'address': _to_public_address,
+                        'contract': _contract,
+                        "nft_index": _nft_index,
+                        'token_uri': _token_uri,
+                        'created_by': 'nft_worker',
+                        'created_time': dt_utcnow(),
+                    }
+                },
+                upsert=True
+            )
+
+        return f"DONE - Mint NFT From Box Success: {_event}"
+    except Exception as exc:
+        self.retry(countdown=2, exc=exc)
+        traceback.print_exc()
+        sentry_sdk.capture_exception()
+        return f"FAIL - on_mint_from_box: {_event}"
     
 @worker.task(bind=True, name='worker.on_upload_metadata_nft', rate_limit='1000/s', max_retries=3)
 def on_upload_metadata_nft(self, _event_infos, _is_default=False):
