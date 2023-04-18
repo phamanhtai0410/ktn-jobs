@@ -90,7 +90,7 @@ def on_token_created(_event):
         _is_box = py_.get(_collection, 'is_box', True)
 
         # Handle cases of box or single nft selling
-        if _is_box:
+        if not _is_box:
             _chosen_type = _types_list[_nft_index]
         else:
             _shuffled_collection =  ShuffledCollectionModel.find_one(filter={
