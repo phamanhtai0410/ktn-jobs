@@ -159,7 +159,7 @@ def loop_task(event):
     handle_log(**_kw)
 
 
-pool = Pool(50)
+pool = Pool(4)
 
 
 def sync_all(database, collection, fields=[], ttl=TTL_KEY, hset_field=None, path=None):
