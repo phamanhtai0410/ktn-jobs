@@ -87,6 +87,7 @@ def on_token_created(_event):
             "address": _contract,
             "chain": _chain
         })
+        LoggerTask.debug("Collection info :", _collection)
         
         """
             Split flows when token created:
@@ -95,7 +96,7 @@ def on_token_created(_event):
         """
         
         if py_.get(_collection, 'is_existing_metadata', False):
-            
+            LoggerTask.debug("Case 1 : existing ", py_.get(_collection, 'is_existing_metadata', False))
             _price = py_.get(_collection, 'price', 0)
             _image_base_url = py_.get(_collection, 'image_base_url')
             _json_base_url = py_.get(_collection, 'json_base_url')
@@ -132,6 +133,7 @@ def on_token_created(_event):
             
             
         else:
+            LoggerTask.debug("Case 2")
             """The simple flow for the multiple typed defined NFT collection 
 
             Returns:
