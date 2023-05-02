@@ -84,7 +84,7 @@ def on_token_created(_event):
         """
         # Get the infos stored in DB
         _collection = CollectionModel.find_one(filter={
-            "address": _contract,
+            "address": _contract
             
             # NOTE: comment this for check; uncomment when supporting the multichain with `chain` field`
             # "chain": _chain
