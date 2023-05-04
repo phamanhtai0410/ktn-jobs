@@ -6,6 +6,7 @@
 """
 import asyncio
 import json
+import os
 import sys
 import traceback
 
@@ -21,7 +22,7 @@ import sentry_sdk
 sys.path.append('.')
 from config import Config
 from extentions import redis_cluster
-from multiprocessing import Pool
+from multiprocessing import Pool, get_context
 from util import logger
 from lib.logger import debug
 
@@ -69,7 +70,7 @@ def get_key_redis(database, collection, obj, fields):
             _key_fields = field.split("#")
             debug(f'{_key_fields}')
             _filter_keys.append(_key_fields[0])
-            _obj[_key_fields[0]] = json.loads(_key_fields[1])
+            _obj[_key_fields[0]] = _key_fields[1]
 
     _filter_keys.sort()
 
@@ -95,7 +96,7 @@ def filter_log(fields, obj):
         if "#" in field:
             _key_fields = field.split("#")
             _filter_keys.append(_key_fields[0])
-            _obj[_key_fields[0]] = json.loads(_key_fields[1])
+            _obj[_key_fields[0]] = _key_fields[1]
     for key, val in _obj.items():
         if get(obj,key) != val:
             return False
@@ -144,8 +145,8 @@ def handle_log(obj, hset_field, fields, database, collection, ttl=-1, path=None,
                     value=value)
             else:
                 printf(f"Remove field {_key} with {key_redis}")
-
-                redis_cluster.hdel(key_redis, _key)
+                if _key:
+                    redis_cluster.hdel(key_redis, _key)
         printf('handle_log', '-' * 5, key_redis)  # for readability only
 
     except Exception as e:
@@ -159,7 +160,7 @@ def loop_task(event):
     handle_log(**_kw)
 
 
-pool = Pool(4)
+pool = get_context('fork').Pool(4)
 
 
 def sync_all(database, collection, fields=[], ttl=TTL_KEY, hset_field=None, path=None):
