@@ -6,6 +6,7 @@ import json
 import web3
 import boto3
 import random
+import requests
 
 from constants import Constants
 from tasks.referral import send_referral_reward
@@ -50,6 +51,7 @@ def on_token_created(_event):
     try:
         # Load event details
         event = json.loads(_event)
+        _chain = py_.get(event, 'chain')
         _tx_hash = py_.get(event, 'transactionHash').lower()
         _contract = py_.get(event, 'address').lower()
         _event_name = py_.get(event, 'event')
@@ -67,6 +69,7 @@ def on_token_created(_event):
         _nft_history = NftsHistoryModel.find_one({
             'token_id': _token_id,
             'event': _event_name,
+            'chain': _chain,
             'tx_hash': _tx_hash
         })
 
@@ -82,94 +85,150 @@ def on_token_created(_event):
         # Get the infos stored in DB
         _collection = CollectionModel.find_one(filter={
             "address": _contract
+            
+            # NOTE: comment this for check; uncomment when supporting the multichain with `chain` field`
+            # "chain": _chain
         })
-
-        # Trigger in-need data in collection record
-        _types_list = py_.get(_collection, "types_list")
-        _total_supply = py_.get(_collection, "total_supply")
-        _is_box = py_.get(_collection, 'is_box', True)
-
-        # Handle cases of box or single nft selling
-        if not _is_box:
-            _chosen_type = _types_list[_nft_index]
-        else:
-            _shuffled_collection =  ShuffledCollectionModel.find_one(filter={
-                'contract': _contract
-            })
-            _collection_indexes = py_.get(_shuffled_collection, 'shuffled_indexes', [])
-            _index = _collection_indexes[_token_id - 1]
-            _chosen_type = _types_list[_index]
+        LoggerTask.debug("Collection info :", _collection)
         
-        # Pick attributes of the chosen type
-        _image = py_.get(
-            _chosen_type,
-            "ImageUrl",
-            "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png"
-        )
-        _animation_url = py_.get(
-            _chosen_type,
-            "AnimationModelUrl",
-            "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb"
-        )
-        _price = py_.get(_chosen_type, 'price', 0)
-
-        # pop the unnecessary infos in `attributes`
-        _chosen_type.pop("rate")
-        _chosen_type.pop("price")
-        if py_.get(_chosen_type, "ImageUrl"):
-            _chosen_type.pop("ImageUrl")
-        if py_.get(_chosen_type, "AnimationModelUrl"):
-            _chosen_type.pop("AnimationModelUrl")
-        _chosen_type.pop("AssetDescription")
-
         """
-            Create the metadata as the nft Index in both 2 cases:
-                1. Random as box: the randomed index is used for this creation
-                2. Mint with specificed nft index: this index is used for the creation
-        """ 
-        # Structuring the `metadata` object for message
-        _metadata = {
-            "name": py_.get(_collection, "name"),
-            "description": py_.get(_collection, "description"),
-            "image": _image,
-            "animation_url": _animation_url,
-            "attributes": _chosen_type
-        }
-
-        # Full-message to task upload metadata
-        _msg_update_meta_data = {
-            "contract": _contract,
-            "token_id": _token_id,
-            "metadata": _metadata
-        }
-
-        # Push mess to queue `upload_metadata_nft`
-        on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
-
-        # Check if the collection is box presentation then send messsage to create the metadata as default of box image
-        if _is_box:
-            # Structuring the default metadata
-            _metadata_default = {
-                "name": "KATA Box",
-                "description": "Mystery box",
-                "image": "https://bafybeigt7kulmg22lkalr5s4gc6rh23dwkykozphwey7ayaxvaeb6yezsq.ipfs.dweb.link/kata_box.png",
-                "attributes": [
-                    {
-                        "trait_type": "Type",
-                        "value": "Box"
-                    }
-                ]
+            Split flows when token created:
+            1. Existing Metadata
+            2. Simple flow with pre-defined NFT collection
+        """
+        
+        if py_.get(_collection, 'is_existing_metadata', False):
+            LoggerTask.debug("Case 1 : existing ", py_.get(_collection, 'is_existing_metadata', False))
+            _price = py_.get(_collection, 'price', 0)
+            _image_base_url = py_.get(_collection, 'image_base_url')
+            _json_base_url = py_.get(_collection, 'json_base_url')
+            
+            _headers = {
+                'Accept': 'application/json',
+                'Access-Control-Allow-Origin': '*'
             }
-
-            # Full-message to task upload the default metadata
-            _msg_update_meta_data_default = {
+            _json_data = requests.get(
+                url=f"{_json_base_url}/{_token_id}.json",
+                headers=_headers
+            )
+            
+            if _json_data.status_code != 200:
+                raise Exception(f"Can not access the json data from json base URL")
+            
+            _image_url = f"{_image_base_url}/{_token_id}.jpg"
+            
+            _new_json = {
+                **_json_data.json(),
+                'image': _image_url
+            }
+            
+            # Full-message to task upload metadata
+            _msg_update_meta_data = {
                 "contract": _contract,
                 "token_id": _token_id,
-                "metadata": _metadata_default
+                "metadata": _new_json,
+                "chain": _chain
+            }
+            
+            # Push mess to queue `upload_metadata_nft`
+            on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
+            
+            
+        else:
+            LoggerTask.debug("Case 2")
+            """The simple flow for the multiple typed defined NFT collection 
+
+            Returns:
+                _type_: _description_
+            """
+            # Trigger in-need data in collection record
+            _types_list = py_.get(_collection, "types_list")
+            _total_supply = py_.get(_collection, "total_supply")
+            _is_box = py_.get(_collection, 'is_box', True)
+
+            # Handle cases of box or single nft selling
+            if not _is_box:
+                _chosen_type = _types_list[_nft_index]
+            else:
+                _shuffled_collection =  ShuffledCollectionModel.find_one(filter={
+                    'contract': _contract
+                })
+                _collection_indexes = py_.get(_shuffled_collection, 'shuffled_indexes', [])
+                _index = _collection_indexes[_token_id - 1]
+                _chosen_type = _types_list[_index]
+            
+            # Pick attributes of the chosen type
+            _image = py_.get(
+                _chosen_type,
+                "ImageUrl",
+                "https://ipfs.moralis.io:2053/ipfs/QmXqxN16GhrVtYsMUBH5zVmTdnffQf35dv6v4YKXnZoYG7/event.png"
+            )
+            _animation_url = py_.get(
+                _chosen_type,
+                "AnimationModelUrl",
+                "https://bafybeidflvqfxkw4zbcnlcxu6mnkbhjxfdecv3ggkj3fgb5bm5nmbhznqu.ipfs.dweb.link/boots.glb"
+            )
+            _price = py_.get(_chosen_type, 'price', 0)
+
+            # pop the unnecessary infos in `attributes`
+            _chosen_type.pop("rate")
+            _chosen_type.pop("price")
+            if py_.get(_chosen_type, "ImageUrl"):
+                _chosen_type.pop("ImageUrl")
+            if py_.get(_chosen_type, "AnimationModelUrl"):
+                _chosen_type.pop("AnimationModelUrl")
+            _chosen_type.pop("AssetDescription")
+
+            """
+                Create the metadata as the nft Index in both 2 cases:
+                    1. Random as box: the randomed index is used for this creation
+                    2. Mint with specificed nft index: this index is used for the creation
+            """ 
+            # Structuring the `metadata` object for message
+            _metadata = {
+                "name": py_.get(_collection, "name"),
+                "description": py_.get(_collection, "description"),
+                "image": _image,
+                "animation_url": _animation_url,
+                "attributes": _chosen_type
             }
 
-            # Push mess to queue `upload_metadata_nft` default by time
-            on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data_default), True)
+            # Full-message to task upload metadata
+            _msg_update_meta_data = {
+                "contract": _contract,
+                "token_id": _token_id,
+                "metadata": _metadata,
+                "chain": _chain
+            }
+
+            # Push mess to queue `upload_metadata_nft`
+            on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data)) # upload metadata to s3
+
+            # Check if the collection is box presentation then send messsage to create the metadata as default of box image
+            if _is_box:
+                # Structuring the default metadata
+                _metadata_default = {
+                    "name": "KATA Box",
+                    "description": "Mystery box",
+                    "image": "https://bafybeigt7kulmg22lkalr5s4gc6rh23dwkykozphwey7ayaxvaeb6yezsq.ipfs.dweb.link/kata_box.png",
+                    "attributes": [
+                        {
+                            "trait_type": "Type",
+                            "value": "Box"
+                        }
+                    ]
+                }
+
+                # Full-message to task upload the default metadata
+                _msg_update_meta_data_default = {
+                    "contract": _contract,
+                    "token_id": _token_id,
+                    "metadata": _metadata_default,
+                    "chain": _chain
+                }
+
+                # Push mess to queue `upload_metadata_nft` default by time
+                on_upload_metadata_nft.delay(json.dumps(_msg_update_meta_data_default), True)
 
         # Check price NFT && Update NFT [TODO]
         if not _price:
@@ -184,6 +243,7 @@ def on_token_created(_event):
                 },
                 '$set': {
                     'contract': _contract,
+                    'chain': _chain,
                     'updated_time': dt_utcnow(),
                     'updated_by': 'nft_worker'
                 }
@@ -192,6 +252,7 @@ def on_token_created(_event):
         _insert_result = NftsHistoryModel.insert_one({
             **_extra_data,
             'contract': _contract,
+            'chain': _chain,
             'from_address': str(web3.constants.ADDRESS_ZERO),
             'to_address': _to_public_address,
             'token_id': _token_id,
@@ -213,6 +274,7 @@ def on_token_created(_event):
                     'token_id': _token_id,
                     'address': _to_public_address,
                     'contract': _contract,
+                    'chain': _chain,
                     "nft_index": _nft_index,
                     'token_uri': _token_uri,
                     'created_by': 'nft_worker',
@@ -470,6 +532,12 @@ def on_upload_metadata_nft(self, _event_infos, _is_default=False):
         _contract_address = py_.get(event, 'contract').lower()
         _token_id = py_.get(event, 'token_id')
         _metadata =  py_.get(event, 'metadata')
+        _chain = py_.get(event, 'chain')
+        
+        # TODO: enable when wants to separate the contracts in each chain
+        # TODO: not eanable now since the current system cant mint new NFT if change the path to generate the metadata of new tokenID
+        # _key = f"metadata/{_chain}/{_contract_address}/{_token_id}.json"
+        
         _key = f"metadata/{_contract_address}/{_token_id}.json"
         if _is_default: #  case before maxTime
             _key = f"metadata/collection/{_contract_address}/{_token_id}.json"

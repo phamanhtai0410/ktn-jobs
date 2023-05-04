@@ -7,3 +7,5 @@ venv
 supervisord.pid
 *.model
 lib
+test.py
+test2.py
