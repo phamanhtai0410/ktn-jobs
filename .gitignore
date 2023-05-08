@@ -9,3 +9,4 @@ supervisord.pid
 lib
 test.py
 test2.py
+**/test_*.py
